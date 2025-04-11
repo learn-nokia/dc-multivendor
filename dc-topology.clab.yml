@@ -1,0 +1,128 @@
+name: dc-mutivendor
+prefix: ""
+
+mgmt:
+  network: srl-evpn-lab-mgmt
+  ipv4-subnet: 172.30.30.0/24
+  ipv6-subnet: 2001:172:20:20::/64
+
+topology:
+  defaults:
+    kind: nokia_srlinux
+  kinds:
+    nokia_srlinux:
+      type: ixrd2l
+      image: ghcr.io/nokia/srlinux:25.3.1
+    linux:
+      image: ghcr.io/mfzhsn/network-multitool-sshd:0.0.2
+    ceos:
+      image: ceos:4.33.0F
+    sonic-vs:
+      image: docker-sonic-vs:202405
+
+
+  nodes:
+    leaf1:
+      startup-config: configs/fabric/startup/leaf1-startup.cfg
+      mgmt-ipv4: 172.30.30.2
+      mgmt-ipv6: 2001:172:20:20::2
+    leaf2:
+      startup-config: configs/fabric/startup/leaf2-startup.cfg
+      mgmt-ipv4: 172.30.30.4
+      mgmt-ipv6: 2001:172:20:20::4
+    spine1:
+      startup-config: configs/fabric/startup/spine-startup.cfg
+      mgmt-ipv4: 172.30.30.3
+      mgmt-ipv6: 2001:172:20:20::3
+
+    # New spine and leaf nodes
+    spine2:
+      kind: nokia_srlinux
+      # startup-config: configs/fabric/startup/spine2-startup.cfg
+      mgmt-ipv4: 172.30.30.5
+      mgmt-ipv6: 2001:172:20:20::5
+
+    leaf3:
+      kind: ceos
+      mgmt-ipv4: 172.30.30.6
+      mgmt-ipv6: 2001:172:20:20::6
+
+    leaf4:
+      kind: ceos
+      mgmt-ipv4: 172.30.30.7
+      mgmt-ipv6: 2001:172:20:20::7
+
+    leaf5:
+      kind: sonic-vs
+      mgmt-ipv4: 172.30.30.8
+      mgmt-ipv6: 2001:172:20:20::8
+
+    client1:
+      kind: linux
+      mgmt-ipv4: 172.30.30.10
+      mgmt-ipv6: 2001:172:20:20::10
+      exec:
+        - ip address add 172.16.10.50/24 dev eth1
+        - ip -6 address add 172:16:10::50/64 dev eth1
+        - ip route add 10.90.1.0/24 via 172.16.10.254
+        - ip route add 10.80.1.0/24 via 172.16.10.254
+        - ip -6 route add 10:90:1::/64 via 172:16:10::254
+        - ip -6 route add 10:80:1::/64 via 172:16:10::254
+    client2:
+      kind: linux
+      mgmt-ipv4: 172.30.30.11
+      mgmt-ipv6: 2001:172:20:20::11
+      binds:
+        - ./configs/hosts/client2/interfaces:/etc/network/interfaces
+        - ./configs/hosts/client2/staticroute:/etc/conf.d/staticroute
+      exec:
+        - /root/restart-services.sh
+        - ip route add 172.16.10.0/24 via 10.80.1.2
+        - ip -6 route add 10:90:1::/64 via 10:80:1::2
+    client3:
+      kind: linux
+      mgmt-ipv4: 172.30.30.12
+      mgmt-ipv6: 2001:172:20:20::12
+      binds:
+        - ./configs/hosts/client3/interfaces:/etc/network/interfaces
+        - ./configs/hosts/client3/staticroute:/etc/conf.d/staticroute        
+      exec:
+        - /root/restart-services.sh
+        - ip -6 route add 10:90:1::/64 via 172:16:10::253
+        - ip -6 route add 10:80:1::/64 via 172:16:10::253
+    client4:
+      kind: linux
+      mgmt-ipv4: 172.30.30.13
+      mgmt-ipv6: 2001:172:20:20::13
+      binds:
+        - ./configs/hosts/client4/interfaces:/etc/network/interfaces
+        - ./configs/hosts/client4/staticroute:/etc/conf.d/staticroute
+      exec:
+        - /root/restart-services.sh
+        - ip route add 172.16.10.0/24 via 10.90.1.2
+        - ip -6 route add 10:80:1::/64 via 10:90:1::2
+
+  links:
+    # Original links, updated for spine1
+    - endpoints: ["leaf1:e1-1", "spine1:e1-1"]
+    - endpoints: ["leaf2:e1-2", "spine1:e1-2"]
+    - endpoints: ["client1:eth1", "leaf1:e1-10"]
+    - endpoints: ["client2:eth1", "leaf1:e1-11"]
+    - endpoints: ["client3:eth1", "leaf2:e1-10"]
+    - endpoints: ["client4:eth1", "leaf2:e1-11"]
+
+    # ➕ Add spine2 connections for leaf1–leaf2
+    - endpoints: ["leaf1:e1-3", "spine2:e1-1"]
+    - endpoints: ["leaf2:e1-3", "spine2:e1-2"]
+
+    # ➕ Connect spine2 to new leaf3–leaf5
+    - endpoints: ["leaf3:eth1", "spine2:e1-3"]
+    - endpoints: ["leaf4:eth1", "spine2:e1-4"]
+    - endpoints: ["leaf5:eth1", "spine2:e1-5"]
+
+    # ➕ Also connect leaf3/leaf4 to spine1
+    - endpoints: ["leaf3:eth2", "spine1:e1-3"]
+    - endpoints: ["leaf4:eth2", "spine1:e1-4"]
+
+    # ➕ Interconnect between spine1 and spine2
+    - endpoints: ["spine1:e1-5", "spine2:e1-6"]
