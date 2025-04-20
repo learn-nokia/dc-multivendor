@@ -23,15 +23,15 @@ topology:
 
   nodes:
     leaf1:
-      startup-config: configs/fabric/startup/leaf1-startup.cfg
+      startup-config: configs/fabric/startup-complete/leaf1-startup-complete.cfg
       mgmt-ipv4: 172.30.30.2
       mgmt-ipv6: 2001:172:20:20::2
     leaf2:
-      startup-config: configs/fabric/startup/leaf2-startup.cfg
+      startup-config: configs/fabric/startup-complete/leaf2-startup-complete.cfg
       mgmt-ipv4: 172.30.30.4
       mgmt-ipv6: 2001:172:20:20::4
     spine1:
-      startup-config: configs/fabric/startup/spine-startup.cfg
+      startup-config: configs/fabric/startup-complete/spine-startup-complete.cfg
       mgmt-ipv4: 172.30.30.3
       mgmt-ipv6: 2001:172:20:20::3
 
@@ -52,10 +52,10 @@ topology:
       mgmt-ipv4: 172.30.30.7
       mgmt-ipv6: 2001:172:20:20::7
 
-    leaf5:
-      kind: sonic-vs
-      mgmt-ipv4: 172.30.30.8
-      mgmt-ipv6: 2001:172:20:20::8
+        #    leaf5:
+        #kind: sonic-vs
+        #mgmt-ipv4: 172.30.30.8
+        #mgmt-ipv6: 2001:172:20:20::8
 
     client1:
       kind: linux
@@ -76,7 +76,7 @@ topology:
         - ./configs/hosts/client2/interfaces:/etc/network/interfaces
         - ./configs/hosts/client2/staticroute:/etc/conf.d/staticroute
       exec:
-        - /root/restart-services.sh
+        # - /root/restart-services.sh
         - ip route add 172.16.10.0/24 via 10.80.1.2
         - ip -6 route add 10:90:1::/64 via 10:80:1::2
     client3:
@@ -87,7 +87,7 @@ topology:
         - ./configs/hosts/client3/interfaces:/etc/network/interfaces
         - ./configs/hosts/client3/staticroute:/etc/conf.d/staticroute        
       exec:
-        - /root/restart-services.sh
+        # - /root/restart-services.sh
         - ip -6 route add 10:90:1::/64 via 172:16:10::253
         - ip -6 route add 10:80:1::/64 via 172:16:10::253
     client4:
@@ -98,31 +98,53 @@ topology:
         - ./configs/hosts/client4/interfaces:/etc/network/interfaces
         - ./configs/hosts/client4/staticroute:/etc/conf.d/staticroute
       exec:
-        - /root/restart-services.sh
+        # - /root/restart-services.sh
         - ip route add 172.16.10.0/24 via 10.90.1.2
         - ip -6 route add 10:80:1::/64 via 10:90:1::2
+    client5:
+      kind: linux
+      mgmt-ipv4: 172.30.30.14
+      mgmt-ipv6: 2001:172:20:20::14
+    #client6:
+      #kind: linux
+      #mgmt-ipv4: 172.30.30.15
+      #mgmt-ipv6: 2001:172:20:20::15
 
   links:
+    # Rack-1
     # Original links, updated for spine1
     - endpoints: ["leaf1:e1-1", "spine1:e1-1"]
-    - endpoints: ["leaf2:e1-2", "spine1:e1-2"]
+    - endpoints: ["leaf2:e1-1", "spine1:e1-2"]
+
     - endpoints: ["client1:eth1", "leaf1:e1-10"]
     - endpoints: ["client2:eth1", "leaf1:e1-11"]
     - endpoints: ["client3:eth1", "leaf2:e1-10"]
     - endpoints: ["client4:eth1", "leaf2:e1-11"]
 
-    # ➕ Add spine2 connections for leaf1–leaf2
-    - endpoints: ["leaf1:e1-3", "spine2:e1-1"]
-    - endpoints: ["leaf2:e1-3", "spine2:e1-2"]
+    # Add spine2 connections for leaf1–leaf2
+    - endpoints: ["leaf1:e1-2", "spine2:e1-1"]
+    - endpoints: ["leaf2:e1-2", "spine2:e1-2"]
 
-    # ➕ Connect spine2 to new leaf3–leaf5
-    - endpoints: ["leaf3:eth1", "spine2:e1-3"]
-    - endpoints: ["leaf4:eth1", "spine2:e1-4"]
-    - endpoints: ["leaf5:eth1", "spine2:e1-5"]
+    # Rack-2
 
-    # ➕ Also connect leaf3/leaf4 to spine1
-    - endpoints: ["leaf3:eth2", "spine1:e1-3"]
-    - endpoints: ["leaf4:eth2", "spine1:e1-4"]
+    # Also connect leaf3/leaf4 to spine1
+    - endpoints: ["leaf3:eth1", "spine1:e1-3"]
+    - endpoints: ["leaf4:eth1", "spine1:e1-4"]
 
-    # ➕ Interconnect between spine1 and spine2
-    - endpoints: ["spine1:e1-5", "spine2:e1-6"]
+    # Connect spine2 to new leaf3–leaf5
+    - endpoints: ["leaf3:eth2", "spine2:e1-3"]
+    - endpoints: ["leaf4:eth2", "spine2:e1-4"]
+
+    # Connect clients to leaf3/leaf4 - Multihomed server
+    - endpoints: ["leaf3:eth10", "client5:eth1"]
+    - endpoints: ["leaf4:eth10", "client5:eth2"]
+
+    # MC Lag between Leaf3 and Leaf4 - 100G
+    - endpoints: ["leaf3:eth47", "leaf4:eth47"]
+    - endpoints: ["leaf3:eth48", "leaf4:eth48"]
+
+    # Rack-3
+    #- endpoints: ["leaf5:eth1", "spine1:e1-5"]
+    #- endpoints: ["leaf5:eth2", "spine2:e1-5"]
+    #- endpoints: ["leaf5:eth10", "client6:eth1"]
+
