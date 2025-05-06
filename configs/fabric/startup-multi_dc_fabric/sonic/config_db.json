@@ -113,8 +113,7 @@
     "BGP_DEVICE_GLOBAL": {
         "STATE": {
             "idf_isolation_state": "unisolated",
-            "tsa_enabled": "false",
-            "wcmp_enabled": "false"
+            "tsa_enabled": "false"
         }
     },
     "BREAKOUT_CFG": {
@@ -738,7 +737,7 @@
             "default_bgp_status": "up",
             "default_pfcwd_status": "disable",
             "hwsku": "Force10-S6000",
-            "mac": "02:42:ac:1e:1e:08",
+            "mac": "02:42:ac:1f:1f:02",
             "platform": "x86_64-kvm_x86_64-r0",
             "switch_type": "switch",
             "timezone": "UTC"
@@ -985,6 +984,7 @@
     },
     "FLEX_COUNTER_TABLE": {
         "ACL": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable",
             "POLL_INTERVAL": "10000"
         },
@@ -1018,7 +1018,7 @@
     },
     "INTERFACE": {
         "Ethernet0": {},
-        "Ethernet0|192.168.50.2/31": {}
+        "Ethernet0|192.168.1.2/24": {}
     },
     "KDUMP": {
         "config": {
@@ -1064,23 +1064,11 @@
             "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
             "LOGOUTPUT": "SYSLOG"
         },
-        "SAI_API_DASH_APPLIANCE": {
-            "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
-            "LOGOUTPUT": "SYSLOG"
-        },
         "SAI_API_DASH_DIRECTION_LOOKUP": {
             "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
             "LOGOUTPUT": "SYSLOG"
         },
         "SAI_API_DASH_ENI": {
-            "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
-            "LOGOUTPUT": "SYSLOG"
-        },
-        "SAI_API_DASH_FLOW": {
-            "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
-            "LOGOUTPUT": "SYSLOG"
-        },
-        "SAI_API_DASH_HA": {
             "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
             "LOGOUTPUT": "SYSLOG"
         },
@@ -1101,10 +1089,6 @@
             "LOGOUTPUT": "SYSLOG"
         },
         "SAI_API_DASH_PA_VALIDATION": {
-            "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
-            "LOGOUTPUT": "SYSLOG"
-        },
-        "SAI_API_DASH_TUNNEL": {
             "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
             "LOGOUTPUT": "SYSLOG"
         },
@@ -1137,10 +1121,6 @@
             "LOGOUTPUT": "SYSLOG"
         },
         "SAI_API_HOSTIF": {
-            "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
-            "LOGOUTPUT": "SYSLOG"
-        },
-        "SAI_API_ICMP_ECHO": {
             "LOGLEVEL": "SAI_LOG_LEVEL_NOTICE",
             "LOGOUTPUT": "SYSLOG"
         },
@@ -1372,10 +1352,6 @@
             "LOGLEVEL": "NOTICE",
             "LOGOUTPUT": "SYSLOG"
         },
-        "telemetry": {
-            "LOGLEVEL": "NOTICE",
-            "LOGOUTPUT": "SYSLOG"
-        },
         "tlm_teamd": {
             "LOGLEVEL": "NOTICE",
             "LOGOUTPUT": "SYSLOG"
@@ -1396,10 +1372,6 @@
             "LOGLEVEL": "NOTICE",
             "LOGOUTPUT": "SYSLOG"
         }
-    },
-    "LOOPBACK_INTERFACE": {
-        "Loopback0": {},
-        "Loopback0|5.5.5.5/32": {}
     },
     "MAP_PFC_PRIORITY_TO_QUEUE": {
         "AZURE": {
@@ -1447,19 +1419,17 @@
             "subport": "0"
         },
         "Ethernet4": {
-            "admin_status": "up",
             "alias": "fortyGigE0/4",
             "index": "1",
             "lanes": "29,30,31,32",
-            "speed": "10000",
+            "speed": "100000",
             "subport": "0"
         },
         "Ethernet8": {
-            "admin_status": "up",
             "alias": "fortyGigE0/8",
             "index": "2",
             "lanes": "33,34,35,36",
-            "speed": "10000",
+            "speed": "100000",
             "subport": "0"
         },
         "Ethernet12": {
@@ -1505,11 +1475,10 @@
             "subport": "0"
         },
         "Ethernet36": {
-            "admin_status": "up",
             "alias": "fortyGigE0/36",
             "index": "9",
             "lanes": "9,10,11,12",
-            "speed": "10000",
+            "speed": "100000",
             "subport": "0"
         },
         "Ethernet40": {
@@ -1682,16 +1651,6 @@
             "weight": "15"
         }
     },
-    "SNMP": {
-        "LOCATION": {
-            "Location": "public"
-        }
-    },
-    "SNMP_COMMUNITY": {
-        "public": {
-            "TYPE": "RO"
-        }
-    },
     "SYSLOG_CONFIG": {
         "GLOBAL": {
             "rate_limit_burst": "0",
@@ -1803,33 +1762,7 @@
     },
     "VERSIONS": {
         "DATABASE": {
-            "VERSION": "version_202411_02"
-        }
-    },
-    "VLAN": {
-        "Vlan100": {
-            "vlanid": "100"
-        }
-    },
-    "VLAN_MEMBER": {
-        "Vlan100|Ethernet36": {
-            "tagging_mode": "tagged"
-        }
-    },
-    "VXLAN_EVPN_NVO": {
-        "nvo": {
-            "source_vtep": "vtep"
-        }
-    },
-    "VXLAN_TUNNEL": {
-        "vtep": {
-            "src_ip": "5.5.5.5"
-        }
-    },
-    "VXLAN_TUNNEL_MAP": {
-        "vtep|map_1000_Vlan100": {
-            "vlan": "Vlan100",
-            "vni": "1000"
+            "VERSION": "version_202405_02"
         }
     },
     "WRED_PROFILE": {

@@ -98,7 +98,9 @@ subscriptions:
     stream-mode: sample
     sample-interval: 5s
     paths:
-      - /interfaces/interface
+      - /interfaces/interface/state/counters
+      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state
+      - /network-instances/network-instance[name=default]/protocols/protocol[identifier=BGP][name=BGP]
 
 outputs:
   prom-output:
