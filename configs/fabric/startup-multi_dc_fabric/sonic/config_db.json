@@ -989,36 +989,47 @@
             "POLL_INTERVAL": "10000"
         },
         "BUFFER_POOL_WATERMARK": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         },
         "PFCWD": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         },
         "PG_DROP": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         },
         "PG_WATERMARK": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         },
         "PORT": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         },
         "PORT_BUFFER_DROP": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         },
         "QUEUE": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         },
         "QUEUE_WATERMARK": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         },
         "RIF": {
+            "FLEX_COUNTER_DELAY_STATUS": "false",
             "FLEX_COUNTER_STATUS": "enable"
         }
     },
     "INTERFACE": {
         "Ethernet0": {},
-        "Ethernet0|192.168.1.2/24": {}
+        "Ethernet0|192.168.50.2/31": {},
+        "Ethernet4": {},
+        "Ethernet4|192.168.150.2/31": {}
     },
     "KDUMP": {
         "config": {
@@ -1373,6 +1384,12 @@
             "LOGOUTPUT": "SYSLOG"
         }
     },
+    "LOOPBACK_INTERFACE": {
+        "Loopback0": {},
+        "Loopback0|5.5.5.5/32": {},
+        "Loopback100": {},
+        "Loopback100|55.55.55.55/32": {}
+    },
     "MAP_PFC_PRIORITY_TO_QUEUE": {
         "AZURE": {
             "0": "0",
@@ -1419,6 +1436,7 @@
             "subport": "0"
         },
         "Ethernet4": {
+            "admin_status": "up",
             "alias": "fortyGigE0/4",
             "index": "1",
             "lanes": "29,30,31,32",
@@ -1475,10 +1493,12 @@
             "subport": "0"
         },
         "Ethernet36": {
+            "admin_status": "up",
             "alias": "fortyGigE0/36",
+            "autoneg": "off",
             "index": "9",
             "lanes": "9,10,11,12",
-            "speed": "100000",
+            "speed": "10000",
             "subport": "0"
         },
         "Ethernet40": {
@@ -1651,6 +1671,16 @@
             "weight": "15"
         }
     },
+    "SNMP": {
+        "LOCATION": {
+            "Location": "public"
+        }
+    },
+    "SNMP_COMMUNITY": {
+        "public": {
+            "TYPE": "RO"
+        }
+    },
     "SYSLOG_CONFIG": {
         "GLOBAL": {
             "rate_limit_burst": "0",
@@ -1763,6 +1793,32 @@
     "VERSIONS": {
         "DATABASE": {
             "VERSION": "version_202405_02"
+        }
+    },
+    "VLAN": {
+        "Vlan100": {
+            "vlanid": "100"
+        }
+    },
+    "VLAN_MEMBER": {
+        "Vlan100|Ethernet36": {
+            "tagging_mode": "untagged"
+        }
+    },
+    "VXLAN_EVPN_NVO": {
+        "nvo": {
+            "source_vtep": "vtep"
+        }
+    },
+    "VXLAN_TUNNEL": {
+        "vtep": {
+            "src_ip": "55.55.55.55"
+        }
+    },
+    "VXLAN_TUNNEL_MAP": {
+        "vtep|map_100_Vlan100": {
+            "vlan": "Vlan100",
+            "vni": "100"
         }
     },
     "WRED_PROFILE": {

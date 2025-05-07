@@ -1,4 +1,4 @@
-! Startup-config last modified at Sun Apr 20 05:55:20 2025 by root
+! Startup-config last modified at Wed May  7 14:57:19 2025 by root
 ! device: leaf3 (cEOSLab, EOS-4.33.0F-39050855.4330F (engineering build))
 !
 no aaa root
@@ -34,14 +34,14 @@ system l1
 vlan 11
    name VRF10_VLAN11
 !
-vlan 12
-   name VRF10_VLAN12
-!
 vlan 21
    name VRF11_VLAN21
 !
 vlan 22
    name VRF11_VLAN22
+!
+vlan 100
+   name L2-SONiC
 !
 vlan 3009
    name MLAG_L3_VRF_VRF10
@@ -69,8 +69,6 @@ vrf instance MGMT
 !
 vrf instance VRF10
 !
-vrf instance VRF11
-!
 management api gnmi
    transport grpc default
 !
@@ -83,12 +81,11 @@ interface Port-Channel3
    switchport trunk group MLAG
 !
 interface Port-Channel5
-   description PortChannel dc1-leaf1-server1
+   description Server5-Eth1
    switchport trunk native vlan 4092
-   switchport trunk allowed vlan 11-12,21-22
+   switchport trunk allowed vlan 11-12,21-22,100
    switchport mode trunk
    mlag 5
-   spanning-tree portfast
 !
 interface Ethernet1
    description P2P_dc1-spine1_Ethernet1
@@ -110,10 +107,11 @@ interface Ethernet4
    channel-group 3 mode active
 !
 interface Ethernet5
-   description SERVER_dc1-leaf1-server1_PCI1
-   channel-group 5 mode active
+   shutdown
 !
 interface Ethernet10
+   description ToServer5-Eth1
+   channel-group 5 mode on
 !
 interface Ethernet47
 !
@@ -133,32 +131,15 @@ interface Loopback10
 !
 interface Loopback11
    description DIAG_VRF_VRF11
-   vrf VRF11
-   ip address 10.255.11.3/32
 !
 interface Management0
    ip address 172.30.30.6/24
-   ipv6 address 2001:172:20:20::6/64
+   ipv6 address 2001:172:20:20::2/64
 !
 interface Vlan11
    description VRF10_VLAN11
    vrf VRF10
    ip address virtual 10.10.11.1/24
-!
-interface Vlan12
-   description VRF10_VLAN12
-   vrf VRF10
-   ip address virtual 10.10.12.1/24
-!
-interface Vlan21
-   description VRF11_VLAN21
-   vrf VRF11
-   ip address virtual 10.10.21.1/24
-!
-interface Vlan22
-   description VRF11_VLAN22
-   vrf VRF11
-   ip address virtual 10.10.22.1/24
 !
 interface Vlan3009
    description MLAG_L3_VRF_VRF10
@@ -169,8 +150,6 @@ interface Vlan3009
 interface Vlan3010
    description MLAG_L3_VRF_VRF11
    mtu 1500
-   vrf VRF11
-   ip address 10.255.1.96/31
 !
 interface Vlan4093
    description MLAG_L3
@@ -189,13 +168,10 @@ interface Vxlan1
    vxlan virtual-router encapsulation mac-address mlag-system-id
    vxlan udp-port 4789
    vxlan vlan 11 vni 10011
-   vxlan vlan 12 vni 10012
-   vxlan vlan 21 vni 10021
-   vxlan vlan 22 vni 10022
+   vxlan vlan 100 vni 100
    vxlan vlan 3401 vni 13401
    vxlan vlan 3402 vni 13402
-   vxlan vrf VRF10 vni 10
-   vxlan vrf VRF11 vni 11
+   vxlan vrf VRF10 vni 200
 !
 ip virtual-router mac-address 00:1c:73:00:00:99
 ip address virtual source-nat vrf VRF10 address 10.255.10.3
@@ -204,7 +180,6 @@ ip address virtual source-nat vrf VRF11 address 10.255.11.3
 ip routing
 no ip routing vrf MGMT
 ip routing vrf VRF10
-ip routing vrf VRF11
 !
 ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
    seq 10 permit 10.255.0.0/27 eq 32
@@ -281,19 +256,9 @@ router bgp 65003
       route-target both 10011:10011
       redistribute learned
    !
-   vlan 12
-      rd 10.255.0.3:10012
-      route-target both 10012:10012
-      redistribute learned
-   !
-   vlan 21
-      rd 10.255.0.3:10021
-      route-target both 10021:10021
-      redistribute learned
-   !
-   vlan 22
-      rd 10.255.0.3:10022
-      route-target both 10022:10022
+   vlan 100
+      rd 10.255.0.3:10100
+      route-target both 65500:100
       redistribute learned
    !
    vlan 3401
@@ -316,21 +281,13 @@ router bgp 65003
    !
    vrf VRF10
       rd 10.255.0.3:10
-      route-target import evpn 10:10
-      route-target export evpn 10:10
+      route-target import evpn 65500:200
+      route-target export evpn 10011:10011
       router-id 10.255.0.3
       neighbor 10.255.1.97 peer group MLAG-IPv4-UNDERLAY-PEER
       neighbor 10.255.1.97 description dc1-leaf1b_Vlan3009
-      redistribute connected route-map RM-CONN-2-BGP-VRFS
-   !
-   vrf VRF11
-      rd 10.255.0.3:11
-      route-target import evpn 11:11
-      route-target export evpn 11:11
-      router-id 10.255.0.3
-      neighbor 10.255.1.97 peer group MLAG-IPv4-UNDERLAY-PEER
-      neighbor 10.255.1.97 description dc1-leaf1b_Vlan3010
-      redistribute connected route-map RM-CONN-2-BGP-VRFS
+      network 10.10.11.0/24
+      redistribute connected route-map RM-CONN-2-BGP
 !
 router multicast
    ipv4

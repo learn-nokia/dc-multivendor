@@ -66,26 +66,40 @@ topology:
 
     client1:
       kind: linux
+      exec:
+        - ip addr add 10.1.100.1/24 dev eth1
       # mgmt-ipv4: 172.30.30.9
 
     client2:
       kind: linux
+      exec:
+        - ip addr add 10.80.1.1/24 dev eth1
+        - ip route add 10.90.1.0/24 via 10.80.1.2 dev eth1
       # mgmt-ipv4: 172.30.30.10
 
     client3:
       kind: linux
+      exec:
+        - ip addr add 10.1.100.3/24 dev eth1
       # mgmt-ipv4: 172.30.30.11
 
     client4:
       kind: linux
+      exec:
+        - ip addr add 10.90.1.1/24 dev eth1
+        - ip route add 10.80.1.0/24 via 10.90.1.2 dev eth1
       # mgmt-ipv4: 172.30.30.12
 
     client5:
       kind: linux
+      exec:
+        - ip addr add 10.1.100.5/24 dev eth1
       # mgmt-ipv4: 172.30.30.13
 
     client6:
       kind: linux
+      exec:
+        - ip addr add 10.1.100.6/24 dev eth1
       # mgmt-ipv4: 172.30.30.14
 
     ### TELEMETRY STACK ###
