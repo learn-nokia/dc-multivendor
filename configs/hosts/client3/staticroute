@@ -1,0 +1,2 @@
+staticroute="net 10.80.1.0 netmask 255.255.255.0 gw 172.16.10.253"
+staticroute="net 10.90.1.0 netmask 255.255.255.0 gw 172.16.10.253"

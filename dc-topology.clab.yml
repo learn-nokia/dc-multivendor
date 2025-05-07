@@ -1,0 +1,181 @@
+name: dc-mutivendor
+prefix: ""
+
+mgmt:
+  network: dc-multivendor
+  ipv4-subnet: 172.30.30.0/24
+  ipv6-subnet: 2001:172:20:20::/64
+
+topology:
+  defaults:
+    kind: nokia_srlinux
+  kinds:
+    nokia_srlinux:
+      type: ixrd2l
+      image: ghcr.io/nokia/srlinux:25.3.1
+    linux:
+      image: ghcr.io/mfzhsn/network-multitool-sshd:0.0.2
+    ceos:
+      image: ceos:4.33.0F
+    sonic-vm:
+      image: vrnetlab/sonic_sonic-vs:sonic-vm-202405
+
+  nodes:
+    leaf1:
+      kind: nokia_srlinux
+      startup-config: configs/fabric/startup-multi_dc_fabric/leaf1_evpn.json
+      mgmt-ipv4: 172.30.30.2
+     #mgmt-ipv6: 2001:172:20:20::2
+
+    leaf2:
+      kind: nokia_srlinux
+      startup-config: configs/fabric/startup-multi_dc_fabric/leaf2_evpn.json
+      mgmt-ipv4: 172.30.30.3
+     #mgmt-ipv6: 2001:172:20:20::3
+
+    spine1:
+      kind: nokia_srlinux
+      startup-config: configs/fabric/startup-multi_dc_fabric/spine1_evpn.json
+      mgmt-ipv4: 172.30.30.4
+     #mgmt-ipv6: 2001:172:20:20::4
+
+    spine2:
+      kind: nokia_srlinux
+      startup-config: configs/fabric/startup-multi_dc_fabric/spine2_evpn.json
+      mgmt-ipv4: 172.30.30.5
+     #mgmt-ipv6: 2001:172:20:20::5
+
+
+    leaf3:
+      kind: ceos
+      startup-config: configs/fabric/startup-multi_dc_fabric/arista_leaf3_evpn
+      mgmt-ipv4: 172.30.30.6
+     #mgmt-ipv6: 2001:172:20:20::6
+
+
+    leaf4:
+      kind: ceos
+      startup-config: configs/fabric/startup-multi_dc_fabric/arista_leaf4_evpn
+      mgmt-ipv4: 172.30.30.7
+     #mgmt-ipv6: 2001:172:20:20::7
+
+    leaf5:
+      kind: sonic-vm
+      # mgmt-ipv4: 172.30.30.8
+
+
+    client1:
+      kind: linux
+      exec:
+        - ip addr add 10.1.100.1/24 dev eth1
+      # mgmt-ipv4: 172.30.30.9
+
+    client2:
+      kind: linux
+      exec:
+        - ip addr add 10.80.1.1/24 dev eth1
+        - ip route add 10.90.1.0/24 via 10.80.1.2 dev eth1
+      # mgmt-ipv4: 172.30.30.10
+
+    client3:
+      kind: linux
+      exec:
+        - ip addr add 10.1.100.3/24 dev eth1
+      # mgmt-ipv4: 172.30.30.11
+
+    client4:
+      kind: linux
+      exec:
+        - ip addr add 10.90.1.1/24 dev eth1
+        - ip route add 10.80.1.0/24 via 10.90.1.2 dev eth1
+      # mgmt-ipv4: 172.30.30.12
+
+    client5:
+      kind: linux
+      exec:
+        - ip addr add 10.1.100.5/24 dev eth1
+      # mgmt-ipv4: 172.30.30.13
+
+    client6:
+      kind: linux
+      exec:
+        - ip addr add 10.1.100.6/24 dev eth1
+      # mgmt-ipv4: 172.30.30.14
+
+    ### TELEMETRY STACK ###
+
+    gnmic:
+      kind: linux
+      # mgmt-ipv4: 172.30.30.30
+      image: ghcr.io/openconfig/gnmic:0.39.1
+      binds:
+        - configs/gnmic/gnmic-config.yml:/gnmic-config.yml:ro
+      cmd: --config /gnmic-config.yml --log subscribe
+
+    prometheus:
+      kind: linux
+      # mgmt-ipv4: 172.30.30.31
+      image: quay.io/prometheus/prometheus:v2.54.1
+      binds:
+        - configs/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      cmd: --config.file=/etc/prometheus/prometheus.yml
+      ports:
+        - 9090:9090
+
+    grafana:
+      kind: linux
+      # mgmt-ipv4: 172.30.30.32
+      image: grafana/grafana:11.2.0
+      binds:
+        - configs/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+        - configs/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+        - configs/grafana/dashboards:/var/lib/grafana/dashboards
+      ports:
+        - 3000:3000
+      # env:
+      #   GF_ORG_ROLE: "Admin"
+      #   GF_ORG_NAME: "Main Org"
+      #   GF_AUTH_ANONYMOUS_ENABLED: "true"
+      #   GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      #   GF_AUTH_ANONYMOUS: "true"
+      #   GF_AUTH_OAUTH_AUTO_LOGIN: "true"
+
+
+  links:
+    # Rack-1
+    # Original links, updated for spine1
+    - endpoints: [ leaf1:e1-1, spine1:e1-1 ]
+    - endpoints: [ leaf2:e1-1, spine1:e1-2 ]
+
+    - endpoints: [ client1:eth1, leaf1:e1-10 ]
+    - endpoints: [ client2:eth1, leaf1:e1-11 ]
+    - endpoints: [ client3:eth1, leaf2:e1-10 ]
+    - endpoints: [ client4:eth1, leaf2:e1-11 ]
+
+    # Add spine2 connections for leaf1–leaf2
+    - endpoints: [ leaf1:e1-2, spine2:e1-1 ]
+    - endpoints: [ leaf2:e1-2, spine2:e1-2 ]
+
+    # Rack-2
+
+    # Connect Spine-1 to Arista leaf3/leaf4
+    - endpoints: [ leaf3:eth1, spine1:e1-3 ]
+    - endpoints: [ leaf4:eth1, spine1:e1-4 ]
+
+    # Connect Spine-2 to Arista leaf3/leaf4
+    - endpoints: [ leaf3:eth2, spine2:e1-3 ]
+    - endpoints: [ leaf4:eth2, spine2:e1-4 ]
+
+    # Connect clients to Arista leaf3/leaf4 - Multihomed server
+    - endpoints: [ leaf3:eth10, client5:eth1 ]
+    - endpoints: [ leaf4:eth10, client5:eth2 ]
+
+    # MC Lag between Arista Leaf3 and Leaf4 - 100G
+    - endpoints: [ leaf3:eth3, leaf4:eth3 ]
+    - endpoints: [ leaf3:eth4, leaf4:eth4 ]
+    - endpoints: [ leaf3:eth5, leaf4:eth5 ]
+
+    # Rack-3
+    - endpoints: [ leaf5:eth1, spine1:e1-5 ]
+    - endpoints: [ leaf5:eth2, spine2:e1-5 ]
+    - endpoints: [ leaf5:eth10, client6:eth1 ]

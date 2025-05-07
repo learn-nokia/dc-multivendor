@@ -1,0 +1,11 @@
+auto eth1
+iface eth1 inet static
+address 172.16.10.60
+netmask 255.255.255.0
+mtu 1400
+
+iface eth1 inet6 static
+address 172:16:10::60
+netmask 64
+gateway 172:16:10::1
+pre-up echo 0 > /proc/sys/net/ipv6/conf/eth1/accept_ra
