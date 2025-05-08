@@ -9,7 +9,7 @@
 
 
 ## 🗺️ Topology
-![](multi-dc.svg)
+![](picture-multi-dc.svg)
 
 
 ## 📚 Workshop Overview
