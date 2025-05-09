@@ -21,12 +21,8 @@
       + [Streaming Metrics using gNMI](#streaming-metrics-using-gnmi)
       + [Packet Capture using Wireshark/EdgeShark](#packet-capture-using-wiresharkedgeshark)
 
-
-
-
-
 ## 🗺️ Topology
-![](multi-dc.svg)
+![](picture-multi-dc.svg)
 
 
 ## 📚 Workshop Overview
