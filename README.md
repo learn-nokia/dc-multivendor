@@ -5,11 +5,29 @@
 [Mohammad Zaman](www.linkedin.com/in/mohammad-zaman-61496958) : GitHub: mfzhsn </br>
 [Amer Fakher](https://www.linkedin.com/in/amerf-linkedin/): Github: skyglid3r
 
-## Table of contents
+## 📑 Table of Contents
+
+- [🗺️ Topology](#️-topology)
+- [📚 Workshop Overview](#-workshop-overview)
+- [🛠️ Tools Used](#️-tools-used)
+- [🚀 Deploy the Lab](#deploy-the-lab)
+- [🧪 Activities](#activities)
+  - [1. Building BGP EVPN Control Plane](#1-building-bgp-evpn-control-plane)
+    - [Rack-1: Leaf-1 SRLinux](#rack-1-leaf-1-srlinux)
+    - [Rack-2: Leaf-3 EOS](#rack-2-leaf-3-eos)
+    - [Rack-3: Leaf-5 SONiC](#rack-3-leaf-5-sonic)
+- [🔍 Verification](#verification)
+  - [1. Layer-2 Traffic](#1-layer-2-traffic)
+    - [EVPN Route Types Involved](#evpn-route-types-involved)
+    - [Validation Steps](#️validation-steps)
+  - [2. Layer-3 Traffic](#2-layer-3-traffic)
+
+
+
 
 
 ## 🗺️ Topology
-![](picture-multi-dc.svg)
+![](multi-dc.svg)
 
 
 ## 📚 Workshop Overview
@@ -58,22 +76,168 @@ containerlab deploy -t dc-topology.clab.yml
 
 ## Activities
 
-### 1. Building BGP EVPN Control Plane
+### Building BGP EVPN Control Plane
 
-### 2. Building VxLAN
+**Rack-1: Leaf-1 SRLinux **
 
-### 3. Building VxLAN
+BGP IPv4 Configurations:
+
+```
+enter candidate
+```
+
+```
+set / network-instance default protocols bgp admin-state enable
+set / network-instance default protocols bgp autonomous-system 65001
+set / network-instance default protocols bgp router-id 1.1.1.1
+set / network-instance default protocols bgp ebgp-default-policy import-reject-all false
+set / network-instance default protocols bgp ebgp-default-policy export-reject-all false
+set / network-instance default protocols bgp afi-safi ipv4-unicast admin-state enable
+set / network-instance default protocols bgp group ebgp admin-state enable
+set / network-instance default protocols bgp group ebgp peer-as 64500
+set / network-instance default protocols bgp group ebgp afi-safi ipv4-unicast admin-state enable
+set / network-instance default protocols bgp neighbor 192.168.10.3 description underlay_spine-1
+set / network-instance default protocols bgp neighbor 192.168.10.3 peer-group ebgp
+set / network-instance default protocols bgp neighbor 192.168.10.3 export-policy [ export-underlay-v4 ]
+set / network-instance default protocols bgp neighbor 192.168.10.3 afi-safi ipv6-unicast admin-state disable
+set / network-instance default protocols bgp neighbor 192.168.110.3 description underlay_spine-2
+set / network-instance default protocols bgp neighbor 192.168.110.3 peer-group ebgp
+set / network-instance default protocols bgp neighbor 192.168.110.3 export-policy [ export-underlay-v4 ]
+set / network-instance default protocols bgp neighbor 192.168.110.3 afi-safi ipv6-unicast admin-state disable
+```
+
+EVPN Configurations:
+
+```
+set / network-instance default protocols bgp group evpn admin-state enable
+set / network-instance default protocols bgp group evpn multihop admin-state enable
+set / network-instance default protocols bgp group evpn multihop maximum-hops 255
+set / network-instance default protocols bgp group evpn afi-safi evpn admin-state enable
+set / network-instance default protocols bgp group evpn afi-safi ipv4-unicast admin-state disable
+set / network-instance default protocols bgp group evpn afi-safi ipv6-unicast admin-state disable
+set / network-instance default protocols bgp group evpn local-as as-number 65001
+set / network-instance default protocols bgp neighbor 11.11.11.11 admin-state enable
+set / network-instance default protocols bgp neighbor 11.11.11.11 description SPINE1_overlay
+set / network-instance default protocols bgp neighbor 11.11.11.11 peer-as 64500
+set / network-instance default protocols bgp neighbor 11.11.11.11 peer-group evpn
+set / network-instance default protocols bgp neighbor 11.11.11.11 local-as as-number 65001
+set / network-instance default protocols bgp neighbor 11.11.11.11 transport local-address 1.1.1.1
+set / network-instance default protocols bgp neighbor 12.12.12.12 admin-state enable
+set / network-instance default protocols bgp neighbor 12.12.12.12 description SPINE1_overlay
+set / network-instance default protocols bgp neighbor 12.12.12.12 peer-as 64500
+set / network-instance default protocols bgp neighbor 12.12.12.12 peer-group evpn
+set / network-instance default protocols bgp neighbor 12.12.12.12 local-as as-number 65001
+set / network-instance default protocols bgp neighbor 12.12.12.12 transport local-address 1.1.1.1
+```
+
+Merge the newly entered configurations to running
+ 
+```
+commit save
+```
+
+**Rack-2: Leaf-3 EOS**
+
+```
+router bgp 65003
+   router-id 10.255.0.3
+   no bgp default ipv4-unicast
+   maximum-paths 4 ecmp 4
+   neighbor EVPN-OVERLAY-PEERS peer group
+   neighbor EVPN-OVERLAY-PEERS update-source Loopback0
+   neighbor EVPN-OVERLAY-PEERS bfd
+   neighbor EVPN-OVERLAY-PEERS ebgp-multihop 3
+   neighbor EVPN-OVERLAY-PEERS send-community
+   neighbor EVPN-OVERLAY-PEERS maximum-routes 0
+   neighbor IPv4-UNDERLAY-PEERS peer group
+   neighbor IPv4-UNDERLAY-PEERS send-community
+   neighbor IPv4-UNDERLAY-PEERS maximum-routes 12000
+   neighbor MLAG-IPv4-UNDERLAY-PEER peer group
+   neighbor MLAG-IPv4-UNDERLAY-PEER remote-as 65101
+   neighbor MLAG-IPv4-UNDERLAY-PEER next-hop-self
+   neighbor MLAG-IPv4-UNDERLAY-PEER description dc1-leaf1b
+   neighbor MLAG-IPv4-UNDERLAY-PEER route-map RM-MLAG-PEER-IN in
+   neighbor MLAG-IPv4-UNDERLAY-PEER send-community
+   neighbor MLAG-IPv4-UNDERLAY-PEER maximum-routes 12000
+   neighbor 11.11.11.11 peer group EVPN-OVERLAY-PEERS
+   neighbor 11.11.11.11 remote-as 64500
+   neighbor 11.11.11.11 description spine1_dc1_srlinux
+   neighbor 12.12.12.12 peer group EVPN-OVERLAY-PEERS
+   neighbor 12.12.12.12 remote-as 64500
+   neighbor 12.12.12.12 description spine2_dc1_srlinux
+   neighbor 192.168.30.3 peer group IPv4-UNDERLAY-PEERS
+   neighbor 192.168.30.3 remote-as 64500
+   neighbor 192.168.30.3 description spine1_dc1_rack1
+   neighbor 192.168.130.3 peer group IPv4-UNDERLAY-PEERS
+   neighbor 192.168.130.3 remote-as 64500
+   neighbor 192.168.130.3 description spine2_dc1_rack1
+   redistribute connected route-map RM-CONN-2-BGP
+```
+
+**Rack-3: Leaf-5 SONiC**
+
+Before pushing the BGP Config, You need to configure L3 Interfaces or you can use the provided script which would do the same.
+
+```
+./sonic_config.sh
+```
+
+Wait a few minutes before entering BGP configurations, as SONiC tries to bring up all services when a `config reload` is performed from the last script.
+
+1. Step-1: Login to Leaf-5
+
+```
+ssh admin@leaf5
+``` 
+password: admin
 
 
-### 4. Control Plane Verification
+2. Step-2: Login to `vtysh` console
 
-### 4. Traffic Verification
+```
+vtysh
+```
+
+3. Step-3: Enter these commands by entering into `enable` mode and then `configure terminal`.
+
+```
+router bgp 65005
+ bgp router-id 5.5.5.5
+ no bgp ebgp-requires-policy
+ neighbor 11.11.11.11 remote-as 64500
+ neighbor 11.11.11.11 ebgp-multihop 5
+ neighbor 192.168.50.3 remote-as 64500
+ !
+ address-family ipv4 unicast
+  network 5.5.5.5/32
+  redistribute connected
+ exit-address-family
+ !
+ address-family l2vpn evpn
+  neighbor 11.11.11.11 activate
+  advertise-all-vni
+  vni 100
+   route-target import 65500:100
+   route-target export 65500:100
+  exit-vni
+ exit-address-family
+!
+exit
+!
+access-list all seq 5 permit any
+!
+!
+route-map RM_SET_SRC permit 10
+exit
+```
+
+### Verification
 
 Traffic verification is a critical part of validating the functionality and reliability of the data centre fabric. This section outlines the various tools and techniques used during the workshop to verify L2/L3 connectivity, inspect packet paths, analyze control plane behavior, and monitor real-time metrics across the multivendor environment.
 
 ---
 
-#### **1. Layer-2 Traffic**
+#### Control Plane Verification
 
 We verify L2 reachability by simulating hosts connected to different leaf switches and checking their ability to communicate over VXLAN tunnels. These tunnels are dynamically established through the BGP EVPN control plane. Layer-2 communication across the fabric relies heavily on the correct propagation of MAC and VTEP information.
 
@@ -83,7 +247,7 @@ Key aspects of L2 verification include:
 - Using `ping` and `arping` between hosts on the same VLAN (aka EVPN EVI)
 - Ensuring correct **BUM (Broadcast, Unknown unicast, and Multicast)** replication over VXLAN
 
-##### 🔍 EVPN Route Types Involved
+**🔍 EVPN Route Types Involved**
 
 To support L2 connectivity over VXLAN, several BGP EVPN route types come into play:
 
@@ -99,7 +263,7 @@ To support L2 connectivity over VXLAN, several BGP EVPN route types come into pl
 
 > 💡 These EVPN route types reduce the need for data-plane MAC learning and ensure control-plane-based population of forwarding tables, making L2 fabric behavior deterministic and scalable.
 
-##### ✅ Validation Steps:
+**✅ Validation Steps:**
 
 - Confirm EVPN Type 2 routes are installed in each node's BGP EVPN RIB
 - Inspect VXLAN tunnel creation between leaf VTEPs
@@ -269,9 +433,63 @@ Route Distinguisher: 1.1.1.1:200
 > 🔎 Tools like `vtysh`, `gnmic`, `tcpdump`, or vendor-specific CLI (`show evpn`, `show vxlan`, etc.) can be used to inspect EVPN advertisements and data-plane behavior.
 
 
+####  Layer 2 Data Plane Verification
+
+Running Layer 2 Traffic Across All the Racks
+
+1. ICMP Traffic from Client-1 to Client-3 
+
+```
+client1:~# ip a sh eth1
+120: eth1@if121: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP group default
+    link/ether aa:c1:ab:72:a4:65 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet 10.1.100.1/24 scope global eth1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a8c1:abff:fe72:a465/64 scope link
+       valid_lft forever preferred_lft forever
+client1:~#
+client1:~#
+
+
+client1:~# ping 10.1.100.3
+PING 10.1.100.3 (10.1.100.3) 56(84) bytes of data.
+64 bytes from 10.1.100.3: icmp_seq=1 ttl=64 time=1.23 ms
+64 bytes from 10.1.100.3: icmp_seq=2 ttl=64 time=0.949 ms
+64 bytes from 10.1.100.3: icmp_seq=3 ttl=64 time=0.882 ms
+```
+
+2. ICMP Traffic from Client-1 to Client-5 (Rack-1 to Rack-2) 
+
+```
+
+```
+
+
+
+3. ICMP Traffic from Client-1 to Client-6 (Rack-1 to Rack-3)
+
+```
+client1:~# ip a sh eth1
+120: eth1@if121: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP group default
+    link/ether aa:c1:ab:72:a4:65 brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet 10.1.100.1/24 scope global eth1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a8c1:abff:fe72:a465/64 scope link
+       valid_lft forever preferred_lft forever
+client1:~#
+client1:~#
+client1:~#
+client1:~# ping 10.1.100.6
+PING 10.1.100.6 (10.1.100.6) 56(84) bytes of data.
+64 bytes from 10.1.100.6: icmp_seq=1 ttl=64 time=1.38 ms
+64 bytes from 10.1.100.6: icmp_seq=2 ttl=64 time=1.39 ms
+64 bytes from 10.1.100.6: icmp_seq=3 ttl=64 time=1.33 ms
+64 bytes from 10.1.100.6: icmp_seq=4 ttl=64 time=1.34 ms
+``` 
+
 ---
 
-#### **2. Layer-3 Traffic**
+#### Layer 3 Data Plane Verification
 
 To validate inter-subnet communication across the fabric, we simulate hosts in different IP subnets connected to different leaf switches. Layer-3 forwarding in modern EVPN-VXLAN fabrics is typically EVPN **Type 5** routes for scalable and efficient routing.
 
@@ -280,7 +498,7 @@ To validate inter-subnet communication across the fabric, we simulate hosts in d
   - These routes are used in inter-subnet forwarding (e.g., Host A in subnet 10.0.1.0/24 to Host B in 10.0.2.0/24).
   - Typically originates from a VRF or L3VNI.
 
-##### ✅ Validation Steps:
+**✅ Validation Steps:**
 
 - Ping between hosts in **different subnets** connected to **different leaf switches**.
 - Verify that Type 5 routes are present in the EVPN RIB of each fabric node.
@@ -310,13 +528,11 @@ PING 10.90.1.1 (10.90.1.1) 56(84) bytes of data.
      
 ```
 
-
-
 > 🔍 *Expected Result:* IP traffic successfully routed through the fabric.
 
 ---
 
-#### **3. MultiCLI on Nokia SR Linux**
+### MultiCLI on Nokia SR Linux
 
 To ease the verification process on Nokia SR Linux nodes, we utilize the **MultiCLI** shell.
 
@@ -330,7 +546,7 @@ Check out the project page: [MultiCLI](https://learn.srlinux.dev/cli/plugins/mul
 
 ---
 
-#### **4. Streaming Metrics using gNMI**
+### Streaming Metrics using gNMI
 
 Real-time monitoring of operational state and performance is achieved using **gNMI telemetry**:
 
@@ -415,7 +631,7 @@ Real-time monitoring of operational state and performance is achieved using **gN
 
 ---
 
-#### **5. Packet Capture using Wireshark/EdgeShark**
+### Packet Capture using Wireshark/EdgeShark
 
 To perform deep-dive inspection of control and data plane traffic:
 
@@ -423,12 +639,19 @@ To perform deep-dive inspection of control and data plane traffic:
 - Capture VXLAN-encapsulated packets and BGP EVPN messages
 - Load `.pcap` files in **Wireshark** or analyze them via **EdgeShark** in-browser
 
+
+**Install EdgeShark**
+
+```
+curl -sL \
+https://github.com/siemens/edgeshark/raw/main/deployments/wget/docker-compose.yaml \
+| DOCKER_DEFAULT_PLATFORM= docker compose -f - up -d
+```
+
+This will deploy the edgeshark containers and expose the Web UI on the containerlab host's port 5001. You can open the Web UI (https://<containerlab-host-address>:5001) in your browser and see the Edgeshark UI.
+
 > 🧪 *Use Cases:* Confirming VXLAN encapsulation, BGP EVPN route advertisements, or diagnosing dropped traffic.
 
 ---
 
 > ✅ **Summary**: By combining CLI inspection, telemetry-based observability, and packet capture techniques, participants gain a full-stack understanding of traffic flows and system behavior in a multivendor data centre fabric.
-
-
-
-
