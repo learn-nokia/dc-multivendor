@@ -1,3 +1,6 @@
+#author: Mohammad Zaman - Github: mfzhsn
+#description: Multi DC Fabric
+ 
 name: dc-mutivendor
 prefix: ""
 
@@ -23,39 +26,39 @@ topology:
   nodes:
     leaf1:
       kind: nokia_srlinux
-      startup-config: configs/fabric/startup-multi_dc_fabric/leaf1_evpn.json
+      startup-config: configs/fabric/startup-multi_dc_fabric/leaf1_srl_evpn.json
       mgmt-ipv4: 172.30.30.2
      #mgmt-ipv6: 2001:172:20:20::2
 
     leaf2:
       kind: nokia_srlinux
-      startup-config: configs/fabric/startup-multi_dc_fabric/leaf2_evpn.json
+      startup-config: configs/fabric/startup-multi_dc_fabric/leaf2_srl_evpn.json
       mgmt-ipv4: 172.30.30.3
      #mgmt-ipv6: 2001:172:20:20::3
 
     spine1:
       kind: nokia_srlinux
-      startup-config: configs/fabric/startup-multi_dc_fabric/spine1_evpn.json
+      startup-config: configs/fabric/startup-multi_dc_fabric/spine1_srl_evpn.json
       mgmt-ipv4: 172.30.30.4
      #mgmt-ipv6: 2001:172:20:20::4
 
     spine2:
       kind: nokia_srlinux
-      startup-config: configs/fabric/startup-multi_dc_fabric/spine2_evpn.json
+      startup-config: configs/fabric/startup-multi_dc_fabric/spine2_srl_evpn.json
       mgmt-ipv4: 172.30.30.5
      #mgmt-ipv6: 2001:172:20:20::5
 
 
     leaf3:
       kind: ceos
-      startup-config: configs/fabric/startup-multi_dc_fabric/arista_leaf3_evpn
+      startup-config: configs/fabric/startup-multi_dc_fabric/leaf3_arista_evpn
       mgmt-ipv4: 172.30.30.6
      #mgmt-ipv6: 2001:172:20:20::6
 
 
     leaf4:
       kind: ceos
-      startup-config: configs/fabric/startup-multi_dc_fabric/arista_leaf4_evpn
+      startup-config: configs/fabric/startup-multi_dc_fabric/leaf4_arista_evpn
       mgmt-ipv4: 172.30.30.7
      #mgmt-ipv6: 2001:172:20:20::7
 
@@ -132,7 +135,7 @@ topology:
         - configs/grafana/dashboards:/var/lib/grafana/dashboards
       ports:
         - 3000:3000
-      # env:
+      env:
       #   GF_ORG_ROLE: "Admin"
       #   GF_ORG_NAME: "Main Org"
       #   GF_AUTH_ANONYMOUS_ENABLED: "true"
