@@ -7,20 +7,19 @@
 
 ## 📑 Table of Contents
 
-- [🗺️ Topology](#️-topology)
-- [📚 Workshop Overview](#-workshop-overview)
-- [🛠️ Tools Used](#️-tools-used)
-- [🚀 Deploy the Lab](#deploy-the-lab)
-- [🧪 Activities](#activities)
-  - [1. Building BGP EVPN Control Plane](#1-building-bgp-evpn-control-plane)
-    - [Rack-1: Leaf-1 SRLinux](#rack-1-leaf-1-srlinux)
-    - [Rack-2: Leaf-3 EOS](#rack-2-leaf-3-eos)
-    - [Rack-3: Leaf-5 SONiC](#rack-3-leaf-5-sonic)
-- [🔍 Verification](#verification)
-  - [1. Layer-2 Traffic](#1-layer-2-traffic)
-    - [EVPN Route Types Involved](#evpn-route-types-involved)
-    - [Validation Steps](#️validation-steps)
-  - [2. Layer-3 Traffic](#2-layer-3-traffic)
+   * [🗺️ Topology](#-topology)
+   * [📚 Workshop Overview](#-workshop-overview)
+   * [🛠️ Tools Used](#-tools-used)
+   * [Deploy the lab](#deploy-the-lab)
+   * [Activities](#activities)
+      + [Building BGP EVPN Control Plane](#building-bgp-evpn-control-plane)
+      + [Verification](#verification)
+         - [Control Plane Verification](#control-plane-verification)
+         - [Layer 2 Data Plane Verification](#layer-2-data-plane-verification)
+         - [Layer 3 Data Plane Verification](#layer-3-data-plane-verification)
+      + [MultiCLI on Nokia SR Linux](#multicli-on-nokia-sr-linux)
+      + [Streaming Metrics using gNMI](#streaming-metrics-using-gnmi)
+      + [Packet Capture using Wireshark/EdgeShark](#packet-capture-using-wiresharkedgeshark)
 
 
 
