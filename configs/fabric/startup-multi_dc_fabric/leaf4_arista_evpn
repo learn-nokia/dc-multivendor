@@ -1,4 +1,4 @@
-! Startup-config last modified at Wed May  7 14:57:19 2025 by root
+! Startup-config last modified at Sat May 10 18:30:54 2025 by root
 ! device: leaf4 (cEOSLab, EOS-4.33.0F-39050855.4330F (engineering build))
 !
 no aaa root
@@ -41,10 +41,6 @@ vlan 3009
    name MLAG_L3_VRF_VRF10
    trunk group MLAG
 !
-vlan 3010
-   name MLAG_L3_VRF_VRF11
-   trunk group MLAG
-!
 vlan 3401
    name L2_VLAN3401
 !
@@ -77,10 +73,9 @@ interface Port-Channel3
 interface Port-Channel5
    description Po-Server5-Eth2
    switchport trunk native vlan 4092
-   switchport trunk allowed vlan 11-12,21-22,100
+   switchport trunk allowed vlan 11,100
    switchport mode trunk
    mlag 5
-   spanning-tree portfast
 !
 interface Ethernet1
    description P2P_dc1-spine1_Ethernet1
@@ -116,15 +111,12 @@ interface Loopback0
 !
 interface Loopback1
    description VXLAN_TUNNEL_SOURCE
-   ip address 10.255.2.4/32
+   ip address 10.255.1.3/32
 !
 interface Loopback10
    description DIAG_VRF_VRF10
    vrf VRF10
-   ip address 10.255.210.4/32
-!
-interface Loopback11
-   description DIAG_VRF_VRF11
+   ip address 10.255.10.4/32
 !
 interface Management0
    ip address 172.30.30.7/24
@@ -133,22 +125,18 @@ interface Management0
 interface Vlan11
    description VRF10_VLAN11
    vrf VRF10
-   ip address virtual 10.20.11.1/24
+   ip address virtual 10.10.11.1/24
 !
 interface Vlan3009
    description MLAG_L3_VRF_VRF10
    mtu 1500
    vrf VRF10
-   ip address 10.255.2.96/31
-!
-interface Vlan3010
-   description MLAG_L3_VRF_VRF11
-   mtu 1500
+   ip address 10.255.1.97/31
 !
 interface Vlan4093
    description MLAG_L3
    mtu 1500
-   ip address 10.255.2.96/31
+   ip address 10.255.1.97/31
 !
 interface Vlan4094
    description MLAG
@@ -179,9 +167,15 @@ ip prefix-list PL-LOOPBACKS-EVPN-OVERLAY
    seq 10 permit 10.255.20.0/27 eq 32
    seq 20 permit 10.255.2.0/27 eq 32
    seq 30 permit 4.4.4.0/27 eq 32
+   seq 40 permit 2.2.2.2/32 eq 32
+   seq 50 permit 3.3.3.3/32 eq 32
+   seq 60 permit 4.4.4.4/32 eq 32
+   seq 70 permit 5.5.5.5/32 eq 32
+   seq 80 permit 11.11.11.11/32 eq 32
+   seq 90 permit 12.12.12.12/32 eq 32
 !
 ip prefix-list PL-MLAG-PEER-VRFS
-   seq 10 permit 10.255.2.96/31
+   seq 10 permit 10.255.1.96/31
 !
 mlag configuration
    domain-id DC1_L3_LEAF1
@@ -211,7 +205,7 @@ route-map RM-MLAG-PEER-IN permit 10
 router bfd
    multihop interval 300 min-rx 300 multiplier 3
 !
-router bgp 65004
+router bgp 65003
    router-id 4.4.4.4
    no bgp default ipv4-unicast
    maximum-paths 4 ecmp 4
@@ -225,7 +219,7 @@ router bgp 65004
    neighbor IPv4-UNDERLAY-PEERS send-community
    neighbor IPv4-UNDERLAY-PEERS maximum-routes 12000
    neighbor MLAG-IPv4-UNDERLAY-PEER peer group
-   neighbor MLAG-IPv4-UNDERLAY-PEER remote-as 64500
+   neighbor MLAG-IPv4-UNDERLAY-PEER remote-as 65003
    neighbor MLAG-IPv4-UNDERLAY-PEER next-hop-self
    neighbor MLAG-IPv4-UNDERLAY-PEER description dc1-leaf1b
    neighbor MLAG-IPv4-UNDERLAY-PEER route-map RM-MLAG-PEER-IN in
@@ -246,22 +240,22 @@ router bgp 65004
    redistribute connected route-map RM-CONN-2-BGP
    !
    vlan 11
-      rd 10.255.20.4:10011
+      rd 10.255.0.4:10011
       route-target both 10011:10011
       redistribute learned
    !
    vlan 100
-      rd 10.255.20.4:10100
+      rd 10.255.0.4:10100
       route-target both 10100:10100
       redistribute learned
    !
    vlan 3401
-      rd 10.255.20.4:13401
+      rd 10.255.0.4:13401
       route-target both 13401:13401
       redistribute learned
    !
    vlan 3402
-      rd 10.255.20.4:13402
+      rd 10.255.0.4:13402
       route-target both 13402:13402
       redistribute learned
    !
@@ -274,12 +268,12 @@ router bgp 65004
       neighbor MLAG-IPv4-UNDERLAY-PEER activate
    !
    vrf VRF10
-      rd 10.255.20.4:10
+      rd 10.255.0.4:10
       route-target import evpn 65500:200
       route-target export evpn 10011:10011
-      router-id 10.255.20.4
-      neighbor 10.255.2.97 peer group MLAG-IPv4-UNDERLAY-PEER
-      neighbor 10.255.2.97 description dc1-leaf1b_Vlan3009
+      router-id 10.255.0.4
+      neighbor 10.255.1.96 peer group MLAG-IPv4-UNDERLAY-PEER
+      neighbor 10.255.1.96 description dc1-leaf1a_Vlan3009
       network 10.20.11.0/24
       redistribute connected route-map RM-CONN-2-BGP-VRFS
 !

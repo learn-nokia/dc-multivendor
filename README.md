@@ -73,7 +73,7 @@ containerlab deploy -t dc-topology.clab.yml
 
 ### Building BGP EVPN Control Plane
 
-**Rack-1: Leaf-1 SRLinux **
+**Rack-1: Leaf-1 SRLinux**
 
 BGP IPv4 Configurations:
 
@@ -148,7 +148,7 @@ router bgp 65003
    neighbor IPv4-UNDERLAY-PEERS send-community
    neighbor IPv4-UNDERLAY-PEERS maximum-routes 12000
    neighbor MLAG-IPv4-UNDERLAY-PEER peer group
-   neighbor MLAG-IPv4-UNDERLAY-PEER remote-as 65101
+   neighbor MLAG-IPv4-UNDERLAY-PEER remote-as 65003
    neighbor MLAG-IPv4-UNDERLAY-PEER next-hop-self
    neighbor MLAG-IPv4-UNDERLAY-PEER description dc1-leaf1b
    neighbor MLAG-IPv4-UNDERLAY-PEER route-map RM-MLAG-PEER-IN in
