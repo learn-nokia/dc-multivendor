@@ -246,7 +246,7 @@ router bgp 65003
    !
    vlan 100
       rd 10.255.0.4:10100
-      route-target both 10100:10100
+      route-target both 65500:100
       redistribute learned
    !
    vlan 3401
@@ -270,7 +270,7 @@ router bgp 65003
    vrf VRF10
       rd 10.255.0.4:10
       route-target import evpn 65500:200
-      route-target export evpn 10011:10011
+      route-target export evpn 65500:200
       router-id 10.255.0.4
       neighbor 10.255.1.96 peer group MLAG-IPv4-UNDERLAY-PEER
       neighbor 10.255.1.96 description dc1-leaf1a_Vlan3009

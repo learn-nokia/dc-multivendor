@@ -78,6 +78,7 @@ topology:
       exec:
         - ip addr add 10.80.1.1/24 dev eth1
         - ip route add 10.90.1.0/24 via 10.80.1.2 dev eth1
+        - ip route add 10.10.11.0/24 via 10.80.1.2 dev eth1
       # mgmt-ipv4: 172.30.30.10
 
     client3:
@@ -91,12 +92,20 @@ topology:
       exec:
         - ip addr add 10.90.1.1/24 dev eth1
         - ip route add 10.80.1.0/24 via 10.90.1.2 dev eth1
+        - ip route add 10.10.11.0/24 via 10.90.1.2 dev eth1
       # mgmt-ipv4: 172.30.30.12
 
     client5:
       kind: linux
       exec:
-        - ip addr add 10.1.100.5/24 dev eth1
+        - ip link add link eth1 name eth1.100 type vlan id 100
+        - ip addr add 10.1.100.5/24 dev eth1.100
+        - ip link set dev eth1.100 up
+        - ip link add link eth1 name eth1.11 type vlan id 11
+        - ip addr add 10.10.11.5/24 dev eth1.11
+        - ip link set dev eth1.11 up
+        - ip route add 10.80.1.0/24 via 10.10.11.1 dev eth1.11
+        - ip route add 10.90.1.0/24 via 10.10.11.1 dev eth1.11
       # mgmt-ipv4: 172.30.30.13
 
     client6:

@@ -1300,7 +1300,7 @@
               },
               "route-target": {
                 "export-rt": "target:65500:200",
-                "import-rt": "target:10011:10011"
+                "import-rt": "target:65500:200"
               }
             }
           ]
