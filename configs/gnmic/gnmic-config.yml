@@ -18,7 +18,6 @@ common_srl_subscriptions: &common_srl_subs
     - srl-bridge
     - srl-apps
     - srl-net-instance
-    - if-oper-state
     
 targets:
   #SRLinux
@@ -45,19 +44,26 @@ targets:
     insecure: true
     subscriptions:
       - arista-if-stats
+
+  leaf5:8080:
+    username: admin
+    password: admin
+    insecure: true
+    subscriptions:
+      - sonic-if-stats
     
 subscriptions:
   srl-system-performance:
     mode: stream
     stream-mode: sample
-    sample-interval: 10s
+    sample-interval: 5s
     paths:
       - /platform/control[slot=*]/cpu[index=all]/total
       - /platform/control[slot=*]/memory
   srl-if-stats:
     mode: stream
     stream-mode: sample
-    sample-interval: 10s
+    sample-interval: 5s
     paths:
       - /interface[name=ethernet-1/*]/oper-state
       - /interface[name=ethernet-1/*]/statistics
@@ -65,20 +71,20 @@ subscriptions:
   srl-routes:
     mode: stream
     stream-mode: sample
-    sample-interval: 10s
+    sample-interval: 5s
     paths:
       - /network-instance[name=*]/route-table/ipv4-unicast/statistics/
       - /network-instance[name=*]/route-table/ipv6-unicast/statistics/
   srl-bgp:
     mode: stream
     stream-mode: sample
-    sample-interval: 10s
+    sample-interval: 5s
     paths:
       - /network-instance[name=*]/protocols/bgp/statistics
   srl-bridge:
     mode: stream
     stream-mode: sample
-    sample-interval: 10s
+    sample-interval: 5s
     paths:
       - /network-instance[name=*]/bridge-table/statistics/
   srl-apps:
@@ -86,42 +92,65 @@ subscriptions:
       - /system/app-management/application[name=*]
     mode: stream
     stream-mode: sample
-    sample-interval: 10s
+    sample-interval: 5s
   srl-net-instance:
     paths:
       - /network-instance[name=*]/oper-state
     mode: stream
     stream-mode: sample
-    sample-interval: 10s
+    sample-interval: 5s
 
   arista-if-stats:
     mode: stream
     stream-mode: sample
-    sample-interval: 10s
+    sample-interval: 5s
     paths:
-      - /interfaces/interface[name=*]/state/oper-status
+      - /interfaces/interface[name=Ethernet1]/state/oper-status
+      - /interfaces/interface[name=Ethernet2]/state/oper-status
+      - /interfaces/interface[name=Ethernet3]/state/oper-status
+      - /interfaces/interface[name=Ethernet4]/state/oper-status
+      - /interfaces/interface[name=Ethernet5]/state/oper-status
+      - /interfaces/interface[name=Ethernet10]/state/oper-status
       - /interfaces/interface/state/counters
-      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state
+      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor
 
+  sonic-if-stats:
+    mode: stream
+    target: OC-YANG
+    stream-mode: sample
+    sample-interval: 20s
+    paths:
+      - /interfaces/interface[name=Ethernet0]/state/admin-status
+      - /interfaces/interface[name=Ethernet4]/state/admin-status
+      - /interfaces/interface[name=Ethernet36]/state/admin-status
+
+  sonic_counters_port:
+    paths:
+      - "COUNTERS/Ethernet0"
+      - "COUNTERS/Ethernet4"
+      - "COUNTERS/Ethernet36"
+    target: COUNTERS_DB
+    stream-mode: stream
+    sample-interval: 20s
 
 outputs:
   prom-output:
     type: prometheus
     listen: :9273
     event-processors:
-      - trim-prefixes
-      - rename-srl-interface
+      # - trim-prefixes
+      # - rename-srl-interface
       - oper-state-to-int
 
 processors:
-  trim-prefixes:
-    event-strings:
-      value-names:
-        - "^/state/.*"
-      transforms:
-        - trim-prefix:
-            apply-on: "name"
-            prefix: "/state/"
+  # trim-prefixes:
+  #   event-strings:
+  #     value-names:
+  #       - "^/state/.*"
+  #     transforms:
+  #       - trim-prefix:
+  #           apply-on: "name"
+  #           prefix: "/state/"
 
   oper-state-to-int:
     event-strings:
@@ -134,22 +163,23 @@ processors:
             new: "1"
         - replace:
             apply-on: "value"
-            old: "down"
-            new: "0"
-        - replace:
-            apply-on: "value"
             old: "UP"
             new: "1"
         - replace:
             apply-on: "value"
-            old: "DOWN"
+            old: "down"
             new: "0"
-  rename-srl-interface:
-    event-strings:
-      tag-names:
-        - "^interface_name"
-      transforms:
         - replace:
             apply-on: "value"
-            old: "ethernet-(\\d+)/(\\d+)"
-            new: "e$1-$2"
+            old: "DOWN"
+            new: "0"
+  # rename-srl-interface:
+  #   event-strings:
+  #     tag-names:
+  #       - "^interface_name"
+  #     transforms:
+  #       - replace:
+  #           apply-on: "value"
+  #           old: "ethernet-(\\d+)/(\\d+)"
+  #           new: "e$1-$2"
+

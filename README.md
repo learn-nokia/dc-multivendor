@@ -201,7 +201,10 @@ router bgp 65005
  no bgp ebgp-requires-policy
  neighbor 11.11.11.11 remote-as 64500
  neighbor 11.11.11.11 ebgp-multihop 5
+ neighbor 12.12.12.12 remote-as 64500
+ neighbor 12.12.12.12 ebgp-multihop 5
  neighbor 192.168.50.3 remote-as 64500
+ neighbor 192.168.150.3 remote-as 64500
  !
  address-family ipv4 unicast
   network 5.5.5.5/32
@@ -210,20 +213,15 @@ router bgp 65005
  !
  address-family l2vpn evpn
   neighbor 11.11.11.11 activate
+  neighbor 12.12.12.12 activate
   advertise-all-vni
   vni 100
    route-target import 65500:100
    route-target export 65500:100
   exit-vni
  exit-address-family
-!
 exit
 !
-access-list all seq 5 permit any
-!
-!
-route-map RM_SET_SRC permit 10
-exit
 ```
 
 ### Verification
