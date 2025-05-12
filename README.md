@@ -17,12 +17,12 @@
          - [Control Plane Verification](#control-plane-verification)
          - [Layer 2 Data Plane Verification](#layer-2-data-plane-verification)
          - [Layer 3 Data Plane Verification](#layer-3-data-plane-verification)
-      + [MultiCLI on Nokia SR Linux](#multicli-on-nokia-sr-linux)
       + [Streaming Metrics using gNMI](#streaming-metrics-using-gnmi)
       + [Packet Capture using Wireshark/EdgeShark](#packet-capture-using-wiresharkedgeshark)
+      + [MultiCLI on Nokia SR Linux](#multicli-on-nokia-sr-linux)
 
 ## 🗺️ Topology
-![](picture-multi-dc.svg)
+![](picture-multi-dc.png)
 
 
 ## 📚 Workshop Overview
@@ -525,20 +525,6 @@ PING 10.90.1.1 (10.90.1.1) 56(84) bytes of data.
 
 ---
 
-### MultiCLI on Nokia SR Linux
-
-To ease the verification process on Nokia SR Linux nodes, we utilize the **MultiCLI** shell.
-
-**Yes!** Thanks to its model-driven architecture and Custom CLI plugin support, Nokia SR Linux allows you to replicate the CLI behavior of other network NOSes.  
-**Example:** You can recreate familiar BGP neighbor commands from Cisco IOS, Juniper Junos, or Arista EOS using Python-based SR Linux plugins.
-
-MultiCLI is an open source project. If you have a command in mind and are willing to develop the plugin, join the project and contribute. 
-
-Check out the project page: [MultiCLI](https://learn.srlinux.dev/cli/plugins/multicli/)
-
-
----
-
 ### Streaming Metrics using gNMI
 
 Real-time monitoring of operational state and performance is achieved using **gNMI telemetry**:
@@ -644,6 +630,28 @@ https://github.com/siemens/edgeshark/raw/main/deployments/wget/docker-compose.ya
 This will deploy the edgeshark containers and expose the Web UI on the containerlab host's port 5001. You can open the Web UI (https://<containerlab-host-address>:5001) in your browser and see the Edgeshark UI.
 
 > 🧪 *Use Cases:* Confirming VXLAN encapsulation, BGP EVPN route advertisements, or diagnosing dropped traffic.
+
+---
+
+### MultiCLI on Nokia SR Linux
+
+To ease the verification process on Nokia SR Linux nodes, we utilize the **MultiCLI** shell. One can recreate familiar BGP neighbor commands from Cisco IOS, Juniper Junos, or Arista EOS using Python-based SR Linux plugins.
+
+MultiCLI is an open source project. If you have a command in mind and are willing to develop the plugin, join the project and contribute. 
+
+Check out the project page: [MultiCLI](https://learn.srlinux.dev/cli/plugins/multicli/)
+
+In todays lab, **Leaf-1** is installed with the MultiCLI EOS plugin . You can use the following command to enter the MultiCLI shell:
+
+```
+ssh admin@leaf1
+```
+
+Few examples of MultiCLI commands:
+
+```
+leaf1# show ip bgp summary
+```
 
 ---
 
