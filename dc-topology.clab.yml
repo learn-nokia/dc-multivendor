@@ -28,7 +28,8 @@ topology:
       kind: nokia_srlinux
       startup-config: configs/fabric/startup-multi_dc_fabric/leaf1_srl_evpn.json
       mgmt-ipv4: 172.30.30.2
-     #mgmt-ipv6: 2001:172:20:20::2
+      binds:
+        - configs/multicli/:/etc/opt/srlinux/cli/
 
     leaf2:
       kind: nokia_srlinux
