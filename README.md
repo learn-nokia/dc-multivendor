@@ -22,7 +22,7 @@
       + [MultiCLI on Nokia SR Linux](#multicli-on-nokia-sr-linux)
 
 ## 🗺️ Topology
-![](picture-multi-dc.png)
+![](picture-multi-dc.svg)
 
 
 ## 📚 Workshop Overview
