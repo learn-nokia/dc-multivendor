@@ -112,6 +112,7 @@ subscriptions:
       - /interfaces/interface[name=Ethernet5]/state/oper-status
       - /interfaces/interface[name=Ethernet10]/state/oper-status
       - /interfaces/interface/state/counters
+      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state
       - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor
 
   sonic-if-stats:
@@ -172,6 +173,22 @@ processors:
         - replace:
             apply-on: "value"
             old: "DOWN"
+            new: "0"
+        - replace:
+            apply-on: "value"
+            old: "ESTABLISHED"
+            new: "1"
+        - replace:
+            apply-on: "value"
+            old: "IDLE"
+            new: "0"
+        - replace:
+            apply-on: "value"
+            old: "ACTIVE"
+            new: "0"
+        - replace:
+            apply-on: "value"
+            old: "CONNECT"
             new: "0"
   # rename-srl-interface:
   #   event-strings:
