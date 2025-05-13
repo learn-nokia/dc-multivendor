@@ -614,10 +614,7 @@ Real-time monitoring of operational state and performance is achieved using **gN
 
 To perform deep-dive inspection of control and data plane traffic:
 
-- Enable mirroring on container interfaces or use `tcpdump` on nodes
-- Capture VXLAN-encapsulated packets and BGP EVPN messages
-- Load `.pcap` files in **Wireshark** or analyze them via **EdgeShark** in-browser
-
+This is opensource project from Siemens[](https://edgeshark.siemens.io). It is a lightweight, easy-to-use packet capture tool that can be deployed in a containerized environment. It provides a web-based interface for real-time packet capture and analysis.
 
 **Install EdgeShark**
 
@@ -628,6 +625,10 @@ https://github.com/siemens/edgeshark/raw/main/deployments/wget/docker-compose.ya
 ```
 
 This will deploy the edgeshark containers and expose the Web UI on the containerlab host's port 5001. You can open the Web UI (https://<containerlab-host-address>:5001) in your browser and see the Edgeshark UI.
+
+**Note:** You need to install plugin in local wireshark to stream the packets from the edgeshark container.
+Link to install the plugin[](https://github.com/siemens/cshargextcap)
+
 
 > 🧪 *Use Cases:* Confirming VXLAN encapsulation, BGP EVPN route advertisements, or diagnosing dropped traffic.
 
@@ -649,10 +650,16 @@ ssh admin@leaf1
 
 Few examples of MultiCLI commands:
 
-```
-leaf1# show ip bgp summary
-```
-
+1.  show ip bgp summary
+2.  show bgp evpn summary
+3.  show bgp evpn route-type auto-discovery
+4.  show bgp evpn route-type mac-ip
+5.  show bgp evpn route-type imet
+6.  show bgp evpn route-type ethernet-segment
+7.  show bgp evpn route-type ip-prefix
+8.  show eos interface
+9.  show eos interface status 
+10. show eos interface status
 ---
 
 > ✅ **Summary**: By combining CLI inspection, telemetry-based observability, and packet capture techniques, participants gain a full-stack understanding of traffic flows and system behavior in a multivendor data centre fabric.
