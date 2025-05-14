@@ -17,6 +17,7 @@
          - [Control Plane Verification](#control-plane-verification)
          - [Layer 2 Data Plane Verification](#layer-2-data-plane-verification)
          - [Layer 3 Data Plane Verification](#layer-3-data-plane-verification)
+      + [Bonus Activity](#bonus-activity-enable-layer-3-evpn-type-5-on-sonic)
       + [Streaming Metrics using gNMI](#streaming-metrics-using-gnmi)
       + [Packet Capture using Wireshark/EdgeShark](#packet-capture-using-wiresharkedgeshark)
       + [MultiCLI on Nokia SR Linux](#multicli-on-nokia-sr-linux)
@@ -57,9 +58,17 @@ We will be using either **virtual lab environments** built using [containerlab](
 | `EdgeShark`     | Web-based pcap viewer and packet analysis tool for browser-based inspections |
 
 
+## 🔐 Login Details
 
-
-
+| **Tool**         | **Login Details**                      |
+|------------------|----------------------------------------|
+| `Nokia SRLinux`  | `admin` / `NokiaSrl1!`                 |
+| `Asista EOS`     | `admin` / `admin`                      |
+| `SONiC`          | `admin` / `admin`                      |
+| `Clients`        | `root` / `password`                    |
+| `Prometheus`     | `http://<VM_IP>:9090`                  |
+| `Grafana`        | `http://<VM_IP>:3000`, admin/admin     |
+| `Edge Shark UI`  | `http://<VM_IP>:3000`                  |
 
 ## Deploy the lab
 
@@ -440,8 +449,6 @@ client1:~# ip a sh eth1
        valid_lft forever preferred_lft forever
     inet6 fe80::a8c1:abff:fe72:a465/64 scope link
        valid_lft forever preferred_lft forever
-client1:~#
-client1:~#
 
 
 client1:~# ping 10.1.100.3
@@ -454,10 +461,22 @@ PING 10.1.100.3 (10.1.100.3) 56(84) bytes of data.
 2. ICMP Traffic from Client-1 to Client-5 (Rack-1 to Rack-2) 
 
 ```
-
+client1:~# ip a sh eth1
+27: eth1@if28: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP group default
+    link/ether aa:c1:ab:b8:3f:bb brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet 10.1.100.1/24 scope global eth1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a8c1:abff:feb8:3fbb/64 scope link
+       valid_lft forever preferred_lft forever
+client1:~#
+client1:~#
+client1:~#
+client1:~# ping 10.1.100.5
+PING 10.1.100.5 (10.1.100.5) 56(84) bytes of data.
+64 bytes from 10.1.100.5: icmp_seq=1 ttl=64 time=1.94 ms
+64 bytes from 10.1.100.5: icmp_seq=2 ttl=64 time=1.41 ms
+64 bytes from 10.1.100.5: icmp_seq=3 ttl=64 time=1.56 ms
 ```
-
-
 
 3. ICMP Traffic from Client-1 to Client-6 (Rack-1 to Rack-3)
 
@@ -469,8 +488,7 @@ client1:~# ip a sh eth1
        valid_lft forever preferred_lft forever
     inet6 fe80::a8c1:abff:fe72:a465/64 scope link
        valid_lft forever preferred_lft forever
-client1:~#
-client1:~#
+
 client1:~#
 client1:~# ping 10.1.100.6
 PING 10.1.100.6 (10.1.100.6) 56(84) bytes of data.
@@ -522,6 +540,82 @@ PING 10.90.1.1 (10.90.1.1) 56(84) bytes of data.
 ```
 
 > 🔍 *Expected Result:* IP traffic successfully routed through the fabric.
+
+---
+
+### Bonus Activity: Enable Layer 3 EVPN (Type-5) on SONiC
+
+  
+1. Create VLAN 
+
+```
+sudo config vlan add 200
+```
+ 
+2. Create VRF
+
+``` 
+sudo config vrf add Vrf_Type5
+```
+
+3. Bind VLAN to VRF
+
+``` 
+sudo config interface vrf bind Vlan200 Vrf_Type5
+```
+
+4. Add IP to VLAN after associating Vlan200 to VRF
+
+```
+sudo config interface ip add Vlan 200 50.50.50.1/24
+```
+
+5. Map VLAN to VNI
+
+``` 
+sudo config vxlan map add vtep 200 200
+```
+ 
+6. Assoicate VNI to VRF
+
+``` 
+sudo config vrf add_vrf_vni_map Vrf_Type5 200
+```
+
+7. Update BGP Configs at FRR by vtysh console:
+
+```
+vrf Vrf_Type5
+vni 200
+ip router-id 5.5.5.5
+ 
+router bgp 65005 vrf Vrf_Type5
+!
+address-family ipv4 unicast
+  network 50.50.50.0/24
+exit-address-family
+!
+address-family l2vpn evpn
+  advertise ipv4 unicast
+  route-target import 65500:200
+  route-target export 65500:200
+exit-address-family
+exit
+```
+
+**Verification**
+
+Verify the entries in the routing table on Leaf-1 (Rack-1), locate for IP 50.50.50.0/24 (SONiC Vlan200`s Address)
+
+```
+show network-instance ip-vrf-1 route-table
+```
+
+Run Layer 3 Traffic from Leaf1 to Leaf5
+
+``` 
+ping network-instance ip-vrf-1 50.50.50.1
+```
 
 ---
 
