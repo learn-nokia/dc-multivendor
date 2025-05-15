@@ -68,7 +68,7 @@ We will be using either **virtual lab environments** built using [containerlab](
 | `Clients`        | `root` / `password`                    |
 | `Prometheus`     | `http://<VM_IP>:9090`                  |
 | `Grafana`        | `http://<VM_IP>:3000`, admin/admin     |
-| `Edge Shark UI`  | `http://<VM_IP>:3000`                  |
+| `Edge Shark UI`  | `http://<VM_IP>:5001`                  |
 
 ## Deploy the lab
 
