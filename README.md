@@ -72,9 +72,16 @@ We will be using either **virtual lab environments** built using [containerlab](
 
 ## Deploy the lab
 
+**Clone the repo**
+
+```bash
+git clone https://github.com/learn-nokia/dc-multivendor.git && cd dc-multivendor
+```
+
+**Deploy the Lab**
 Once the repo is cloned, run the containerlab topology:
 
-```
+```bash
 containerlab deploy -t dc-topology.clab.yml
 ```
 
