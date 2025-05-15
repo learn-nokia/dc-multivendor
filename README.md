@@ -725,11 +725,11 @@ https://github.com/siemens/edgeshark/raw/main/deployments/wget/docker-compose.ya
 | DOCKER_DEFAULT_PLATFORM= docker compose -f - up -d
 ```
 
-This will deploy the edgeshark containers and expose the Web UI on the containerlab host's port 5001. You can open the Web UI (https://<containerlab-host-address>:5001) in your browser and see the Edgeshark UI.
+This will deploy the edgeshark containers and expose the Web UI on the containerlab host's port 5001. You can open the Web UI (https://<VM>:5001) in your browser and see the Edgeshark UI.
 
-**Note:** You need to install plugin in local wireshark to stream the packets from the edgeshark container.
-Link to install the plugin[](https://github.com/siemens/cshargextcap)
+**Plugin Installation**
 
+You need to install [cshargextcap](https://github.com/siemens/cshargextcap) plugin in local wireshark to stream the packets from the edgeshark to wireshark application.
 
 > 🧪 *Use Cases:* Confirming VXLAN encapsulation, BGP EVPN route advertisements, or diagnosing dropped traffic.
 
