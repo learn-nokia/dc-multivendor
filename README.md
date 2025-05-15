@@ -17,12 +17,13 @@
          - [Control Plane Verification](#control-plane-verification)
          - [Layer 2 Data Plane Verification](#layer-2-data-plane-verification)
          - [Layer 3 Data Plane Verification](#layer-3-data-plane-verification)
-      + [MultiCLI on Nokia SR Linux](#multicli-on-nokia-sr-linux)
+      + [Bonus Activity](#bonus-activity-enable-layer-3-evpn-type-5-on-sonic)
       + [Streaming Metrics using gNMI](#streaming-metrics-using-gnmi)
       + [Packet Capture using Wireshark/EdgeShark](#packet-capture-using-wiresharkedgeshark)
+      + [MultiCLI on Nokia SR Linux](#multicli-on-nokia-sr-linux)
 
 ## 🗺️ Topology
-![](picture-multi-dc.svg)
+![](picture-multi-dc.png)
 
 
 ## 📚 Workshop Overview
@@ -57,15 +58,30 @@ We will be using either **virtual lab environments** built using [containerlab](
 | `EdgeShark`     | Web-based pcap viewer and packet analysis tool for browser-based inspections |
 
 
+## 🔐 Login Details
 
-
-
+| **Tool**         | **Login Details**                      |
+|------------------|----------------------------------------|
+| `Nokia SRLinux`  | `admin` / `NokiaSrl1!`                 |
+| `Asista EOS`     | `admin` / `admin`                      |
+| `SONiC`          | `admin` / `admin`                      |
+| `Clients`        | `root` / `password`                    |
+| `Prometheus`     | `http://<VM_IP>:9090`                  |
+| `Grafana`        | `http://<VM_IP>:3000`, admin/admin     |
+| `Edge Shark UI`  | `http://<VM_IP>:5001`                  |
 
 ## Deploy the lab
 
+**Clone the repo**
+
+```bash
+git clone https://github.com/learn-nokia/dc-multivendor.git && cd dc-multivendor
+```
+
+**Deploy the Lab**
 Once the repo is cloned, run the containerlab topology:
 
-```
+```bash
 containerlab deploy -t dc-topology.clab.yml
 ```
 
@@ -201,7 +217,10 @@ router bgp 65005
  no bgp ebgp-requires-policy
  neighbor 11.11.11.11 remote-as 64500
  neighbor 11.11.11.11 ebgp-multihop 5
+ neighbor 12.12.12.12 remote-as 64500
+ neighbor 12.12.12.12 ebgp-multihop 5
  neighbor 192.168.50.3 remote-as 64500
+ neighbor 192.168.150.3 remote-as 64500
  !
  address-family ipv4 unicast
   network 5.5.5.5/32
@@ -210,20 +229,15 @@ router bgp 65005
  !
  address-family l2vpn evpn
   neighbor 11.11.11.11 activate
+  neighbor 12.12.12.12 activate
   advertise-all-vni
   vni 100
    route-target import 65500:100
    route-target export 65500:100
   exit-vni
  exit-address-family
-!
 exit
 !
-access-list all seq 5 permit any
-!
-!
-route-map RM_SET_SRC permit 10
-exit
 ```
 
 ### Verification
@@ -442,8 +456,6 @@ client1:~# ip a sh eth1
        valid_lft forever preferred_lft forever
     inet6 fe80::a8c1:abff:fe72:a465/64 scope link
        valid_lft forever preferred_lft forever
-client1:~#
-client1:~#
 
 
 client1:~# ping 10.1.100.3
@@ -456,10 +468,22 @@ PING 10.1.100.3 (10.1.100.3) 56(84) bytes of data.
 2. ICMP Traffic from Client-1 to Client-5 (Rack-1 to Rack-2) 
 
 ```
-
+client1:~# ip a sh eth1
+27: eth1@if28: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9500 qdisc noqueue state UP group default
+    link/ether aa:c1:ab:b8:3f:bb brd ff:ff:ff:ff:ff:ff link-netnsid 1
+    inet 10.1.100.1/24 scope global eth1
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a8c1:abff:feb8:3fbb/64 scope link
+       valid_lft forever preferred_lft forever
+client1:~#
+client1:~#
+client1:~#
+client1:~# ping 10.1.100.5
+PING 10.1.100.5 (10.1.100.5) 56(84) bytes of data.
+64 bytes from 10.1.100.5: icmp_seq=1 ttl=64 time=1.94 ms
+64 bytes from 10.1.100.5: icmp_seq=2 ttl=64 time=1.41 ms
+64 bytes from 10.1.100.5: icmp_seq=3 ttl=64 time=1.56 ms
 ```
-
-
 
 3. ICMP Traffic from Client-1 to Client-6 (Rack-1 to Rack-3)
 
@@ -471,8 +495,7 @@ client1:~# ip a sh eth1
        valid_lft forever preferred_lft forever
     inet6 fe80::a8c1:abff:fe72:a465/64 scope link
        valid_lft forever preferred_lft forever
-client1:~#
-client1:~#
+
 client1:~#
 client1:~# ping 10.1.100.6
 PING 10.1.100.6 (10.1.100.6) 56(84) bytes of data.
@@ -527,17 +550,79 @@ PING 10.90.1.1 (10.90.1.1) 56(84) bytes of data.
 
 ---
 
-### MultiCLI on Nokia SR Linux
+### Bonus Activity: Enable Layer 3 EVPN (Type-5) on SONiC
 
-To ease the verification process on Nokia SR Linux nodes, we utilize the **MultiCLI** shell.
+  
+1. Create VLAN 
 
-**Yes!** Thanks to its model-driven architecture and Custom CLI plugin support, Nokia SR Linux allows you to replicate the CLI behavior of other network NOSes.  
-**Example:** You can recreate familiar BGP neighbor commands from Cisco IOS, Juniper Junos, or Arista EOS using Python-based SR Linux plugins.
+```
+sudo config vlan add 200
+```
+ 
+2. Create VRF
 
-MultiCLI is an open source project. If you have a command in mind and are willing to develop the plugin, join the project and contribute. 
+``` 
+sudo config vrf add Vrf_Type5
+```
 
-Check out the project page: [MultiCLI](https://learn.srlinux.dev/cli/plugins/multicli/)
+3. Bind VLAN to VRF
 
+``` 
+sudo config interface vrf bind Vlan200 Vrf_Type5
+```
+
+4. Add IP to VLAN after associating Vlan200 to VRF
+
+```
+sudo config interface ip add Vlan 200 50.50.50.1/24
+```
+
+5. Map VLAN to VNI
+
+``` 
+sudo config vxlan map add vtep 200 200
+```
+ 
+6. Assoicate VNI to VRF
+
+``` 
+sudo config vrf add_vrf_vni_map Vrf_Type5 200
+```
+
+7. Update BGP Configs at FRR by vtysh console:
+
+```
+vrf Vrf_Type5
+vni 200
+ip router-id 5.5.5.5
+ 
+router bgp 65005 vrf Vrf_Type5
+!
+address-family ipv4 unicast
+  network 50.50.50.0/24
+exit-address-family
+!
+address-family l2vpn evpn
+  advertise ipv4 unicast
+  route-target import 65500:200
+  route-target export 65500:200
+exit-address-family
+exit
+```
+
+**Verification**
+
+Verify the entries in the routing table on Leaf-1 (Rack-1), locate for IP 50.50.50.0/24 (SONiC Vlan200`s Address)
+
+```
+show network-instance ip-vrf-1 route-table
+```
+
+Run Layer 3 Traffic from Leaf1 to Leaf5
+
+``` 
+ping network-instance ip-vrf-1 50.50.50.1
+```
 
 ---
 
@@ -630,10 +715,7 @@ Real-time monitoring of operational state and performance is achieved using **gN
 
 To perform deep-dive inspection of control and data plane traffic:
 
-- Enable mirroring on container interfaces or use `tcpdump` on nodes
-- Capture VXLAN-encapsulated packets and BGP EVPN messages
-- Load `.pcap` files in **Wireshark** or analyze them via **EdgeShark** in-browser
-
+This is opensource project from Siemens[](https://edgeshark.siemens.io). It is a lightweight, easy-to-use packet capture tool that can be deployed in a containerized environment. It provides a web-based interface for real-time packet capture and analysis.
 
 **Install EdgeShark**
 
@@ -645,8 +727,40 @@ https://github.com/siemens/edgeshark/raw/main/deployments/wget/docker-compose.ya
 
 This will deploy the edgeshark containers and expose the Web UI on the containerlab host's port 5001. You can open the Web UI (https://<containerlab-host-address>:5001) in your browser and see the Edgeshark UI.
 
+**Note:** You need to install plugin in local wireshark to stream the packets from the edgeshark container.
+Link to install the plugin[](https://github.com/siemens/cshargextcap)
+
+
 > 🧪 *Use Cases:* Confirming VXLAN encapsulation, BGP EVPN route advertisements, or diagnosing dropped traffic.
 
+---
+
+### MultiCLI on Nokia SR Linux
+
+To ease the verification process on Nokia SR Linux nodes, we utilize the **MultiCLI** shell. One can recreate familiar BGP neighbor commands from Cisco IOS, Juniper Junos, or Arista EOS using Python-based SR Linux plugins.
+
+MultiCLI is an open source project. If you have a command in mind and are willing to develop the plugin, join the project and contribute. 
+
+Check out the project page: [MultiCLI](https://learn.srlinux.dev/cli/plugins/multicli/)
+
+In todays lab, **Leaf-1** is installed with the MultiCLI EOS plugin . You can use the following command to enter the MultiCLI shell:
+
+```
+ssh admin@leaf1
+```
+
+Few examples of MultiCLI commands:
+
+1.  show ip bgp summary
+2.  show bgp evpn summary
+3.  show bgp evpn route-type auto-discovery
+4.  show bgp evpn route-type mac-ip
+5.  show bgp evpn route-type imet
+6.  show bgp evpn route-type ethernet-segment
+7.  show bgp evpn route-type ip-prefix
+8.  show eos interface
+9.  show eos interface status 
+10. show eos interface status
 ---
 
 > ✅ **Summary**: By combining CLI inspection, telemetry-based observability, and packet capture techniques, participants gain a full-stack understanding of traffic flows and system behavior in a multivendor data centre fabric.

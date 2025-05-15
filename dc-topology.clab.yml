@@ -28,7 +28,8 @@ topology:
       kind: nokia_srlinux
       startup-config: configs/fabric/startup-multi_dc_fabric/leaf1_srl_evpn.json
       mgmt-ipv4: 172.30.30.2
-     #mgmt-ipv6: 2001:172:20:20::2
+      binds:
+        - configs/multicli/:/etc/opt/srlinux/cli/
 
     leaf2:
       kind: nokia_srlinux
@@ -78,6 +79,7 @@ topology:
       exec:
         - ip addr add 10.80.1.1/24 dev eth1
         - ip route add 10.90.1.0/24 via 10.80.1.2 dev eth1
+        - ip route add 10.10.11.0/24 via 10.80.1.2 dev eth1
       # mgmt-ipv4: 172.30.30.10
 
     client3:
@@ -91,12 +93,20 @@ topology:
       exec:
         - ip addr add 10.90.1.1/24 dev eth1
         - ip route add 10.80.1.0/24 via 10.90.1.2 dev eth1
+        - ip route add 10.10.11.0/24 via 10.90.1.2 dev eth1
       # mgmt-ipv4: 172.30.30.12
 
     client5:
       kind: linux
       exec:
-        - ip addr add 10.1.100.5/24 dev eth1
+        - ip link add link eth1 name eth1.100 type vlan id 100
+        - ip addr add 10.1.100.5/24 dev eth1.100
+        - ip link set dev eth1.100 up
+        - ip link add link eth1 name eth1.11 type vlan id 11
+        - ip addr add 10.10.11.5/24 dev eth1.11
+        - ip link set dev eth1.11 up
+        - ip route add 10.80.1.0/24 via 10.10.11.1 dev eth1.11
+        - ip route add 10.90.1.0/24 via 10.10.11.1 dev eth1.11
       # mgmt-ipv4: 172.30.30.13
 
     client6:
@@ -128,7 +138,7 @@ topology:
     grafana:
       kind: linux
       # mgmt-ipv4: 172.30.30.32
-      image: grafana/grafana:11.2.0
+      image: grafana/grafana:9.5.2
       binds:
         - configs/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
         - configs/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
@@ -136,6 +146,7 @@ topology:
       ports:
         - 3000:3000
       env:
+        GF_INSTALL_PLUGINS: https://algenty.github.io/flowcharting-repository/archives/agenty-flowcharting-panel-1.0.0d.220606199-SNAPSHOT.zip;agenty-flowcharting-panel
       #   GF_ORG_ROLE: "Admin"
       #   GF_ORG_NAME: "Main Org"
       #   GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -182,3 +193,4 @@ topology:
     - endpoints: [ leaf5:eth1, spine1:e1-5 ]
     - endpoints: [ leaf5:eth2, spine2:e1-5 ]
     - endpoints: [ leaf5:eth10, client6:eth1 ]
+

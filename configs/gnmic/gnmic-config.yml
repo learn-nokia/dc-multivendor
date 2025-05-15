@@ -1,4 +1,4 @@
-# Copyright 2020 Nokia
+# Copyright 2025 Nokia
 # Licensed under the BSD 3-Clause License.
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -44,6 +44,13 @@ targets:
     insecure: true
     subscriptions:
       - arista-if-stats
+
+  leaf5:8080:
+    username: admin
+    password: admin
+    insecure: true
+    subscriptions:
+      - sonic-if-stats
     
 subscriptions:
   srl-system-performance:
@@ -98,8 +105,34 @@ subscriptions:
     stream-mode: sample
     sample-interval: 5s
     paths:
+      - /interfaces/interface[name=Ethernet1]/state/oper-status
+      - /interfaces/interface[name=Ethernet2]/state/oper-status
+      - /interfaces/interface[name=Ethernet3]/state/oper-status
+      - /interfaces/interface[name=Ethernet4]/state/oper-status
+      - /interfaces/interface[name=Ethernet5]/state/oper-status
+      - /interfaces/interface[name=Ethernet10]/state/oper-status
       - /interfaces/interface/state/counters
-      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state
+      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor/state/session-state
+      - /network-instances/network-instance/protocols/protocol/bgp/neighbors/neighbor
+
+  sonic-if-stats:
+    mode: stream
+    target: OC-YANG
+    stream-mode: sample
+    sample-interval: 20s
+    paths:
+      - /interfaces/interface[name=Ethernet0]/state/admin-status
+      - /interfaces/interface[name=Ethernet4]/state/admin-status
+      - /interfaces/interface[name=Ethernet36]/state/admin-status
+
+  sonic_counters_port:
+    paths:
+      - "COUNTERS/Ethernet0"
+      - "COUNTERS/Ethernet4"
+      - "COUNTERS/Ethernet36"
+    target: COUNTERS_DB
+    stream-mode: stream
+    sample-interval: 20s
 
 outputs:
   prom-output:
@@ -131,7 +164,31 @@ processors:
             new: "1"
         - replace:
             apply-on: "value"
+            old: "UP"
+            new: "1"
+        - replace:
+            apply-on: "value"
             old: "down"
+            new: "0"
+        - replace:
+            apply-on: "value"
+            old: "DOWN"
+            new: "0"
+        - replace:
+            apply-on: "value"
+            old: "ESTABLISHED"
+            new: "1"
+        - replace:
+            apply-on: "value"
+            old: "IDLE"
+            new: "0"
+        - replace:
+            apply-on: "value"
+            old: "ACTIVE"
+            new: "0"
+        - replace:
+            apply-on: "value"
+            old: "CONNECT"
             new: "0"
   # rename-srl-interface:
   #   event-strings:
@@ -142,3 +199,4 @@ processors:
   #           apply-on: "value"
   #           old: "ethernet-(\\d+)/(\\d+)"
   #           new: "e$1-$2"
+
