@@ -97,7 +97,6 @@ interface Ethernet4
    channel-group 3 mode active
 !
 interface Ethernet5
-   shutdown
 !
 interface Ethernet10
    description ToServer5-Eth1
