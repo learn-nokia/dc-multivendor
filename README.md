@@ -3,7 +3,7 @@
 **Authors**: 
 
 [Mohammad Zaman](www.linkedin.com/in/mohammad-zaman-61496958) : GitHub: mfzhsn </br>
-[Amer Fakher](https://www.linkedin.com/in/amerf-linkedin/): Github: skyglid3r
+[Amer Fakhar](https://www.linkedin.com/in/amerf-linkedin/): Github: skyglid3r
 
 ## 📑 Table of Contents
 
