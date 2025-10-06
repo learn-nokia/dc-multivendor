@@ -574,7 +574,7 @@ sudo config interface vrf bind Vlan200 Vrf_Type5
 4. Add IP to VLAN after associating Vlan200 to VRF
 
 ```
-sudo config interface ip add Vlan 200 50.50.50.1/24
+sudo config interface ip add Vlan200 50.50.50.1/24
 ```
 
 5. Map VLAN to VNI
